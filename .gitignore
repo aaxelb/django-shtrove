@@ -1,0 +1,4 @@
+garbage
+.coverage
+.dmypy.json
+__pycache__

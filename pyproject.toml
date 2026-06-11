@@ -1,0 +1,45 @@
+[project]
+name = "django-shtrove"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "abram axel booth",email = "boothaa@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "shtrove==0.1.0",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Programming Language :: Python :: 3",
+]
+
+[dependency-groups]
+lint = [
+  'flake8',
+  'mypy',
+  'black',
+]
+test = [
+  # TODO: 'coverage',
+]
+
+[tool.poetry]
+packages = [{include = "django_shtrove", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# [tool.coverage.run]
+# source = ['src']
+# branch = true
+#
+# [tool.coverage.report]
+# skip_covered = true
+# show_missing = true
+
+[tool.mypy]
+strict = true
+exclude_gitignore = true
