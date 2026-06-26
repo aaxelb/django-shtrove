@@ -8,10 +8,10 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "shtrove==0.1.0",
+    # TODO: consider moving non-django parts to "shtrove==0.1.0",
 ]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 1 - Planning",
     "Programming Language :: Python :: 3",
 ]
 
