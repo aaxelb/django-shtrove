@@ -98,18 +98,33 @@ could be implemented a variety of ways -- if there were multiple trovesearch str
 the `indexStrategy` query param)
 
 ## OSF-to-shtrove ingestion sequence
+(slightly simplified)
 ```mermaid
 sequenceDiagram
-    OSF-database <<-->> OSF-worker: gather metadata record
-    destroy OSF-database
-    OSF-worker ->> shtrove-web: POST /trove/ingest
-    shtrove-web ->> shtrove-database: save metadata record
-    shtrove-web ->> shtrove-worker: task__derive
-    shtrove-web ->> OSF-worker: success!
-    destroy OSF-worker
-    shtrove-worker ->> shtrove-database: load metadata record
-    shtrove-worker ->> shtrove-database: save DerivedIndexcards
-    shtrove-worker ->> shtrove-indexer: update/backfill Indexcard id
-    shtrove-indexer ->> shtrove-database: load metadata record
-    shtrove-indexer ->> shtrove-elasticsearch: index
+    box OSF
+    participant oq as queue
+    participant od as db
+    participant ow as worker
+    end
+    box shtrove
+    participant ss as web server
+    participant sd as db
+    participant sw as worker
+    participant sq as queues
+    participant si as indexer
+    participant se as elastic
+    end
+    oq -->> ow: receive update task
+    od <<-->> ow: gather metadata
+    ow ->> ss: POST /trove/ingest
+    ss ->> sd: save metadata record
+    ss ->> sq: enqueue derive task
+    ss ->> ow: success!
+    sq -->> sw: receive derive task
+    sd <<-->> sw: load metadata record
+    sw ->> sd: save DerivedIndexcards
+    sw ->> sq: enqueue indexer message
+    sq -->> si: bulk receive indexer messages
+    sd <<-->> si: bulk load metadata
+    si ->> se: bulk index
 ```
