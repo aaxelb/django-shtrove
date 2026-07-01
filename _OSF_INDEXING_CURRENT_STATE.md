@@ -36,17 +36,20 @@ and OSF has an additional static token that is used both for creating provider t
 for indexing items that don't belong to a provider (e.g. projects)
 
 based on request headers and query params, shtrove ensures in the database:
-    * `share.Source`/`share.SourceConfig` for the authenticated user, with...
-    * `share.SourceUniqueIdentifier` for given `record_identifier`, with...
-    * `trove.ResourceIdentifier` for given `focus_iri`
+* `share.Source`/`share.SourceConfig` for the authenticated user, with...
+* `share.SourceUniqueIdentifier` for given `record_identifier`, with...
+* `trove.ResourceIdentifier` for given `focus_iri`
+
 (see `trove.digestive_tract.sniff`)
 
 then shtrove parses the request body, and may create (or update) in the database:
-    * `trove.ResourceIdentifier` (for each described resource and its types)
-    * `trove.Indexcard` (with identifiers and type-identifiers for the focus resource)
-    * "resource descriptions" in turtle format:
-        * if non-supplementary, `trove.LatestResourceDescription` and `trove.ArchivedResourceDescription`
-        * if supplementary, only `trove.SupplementaryResourceDescription`
+
+* `trove.ResourceIdentifier` (for each described resource and its types)
+* `trove.Indexcard` (with identifiers and type-identifiers for the focus resource)
+* "resource descriptions" in turtle format:
+    * if non-supplementary, `trove.LatestResourceDescription` and `trove.ArchivedResourceDescription`
+    * if supplementary, only `trove.SupplementaryResourceDescription`
+
 (see `trove.digestive_tract.extract`)
 
 shtrove then enqueues a background `task__derive` and responds to OSF with `201 CREATED` success
@@ -60,9 +63,10 @@ combines that card's `LatestResourceDescription` and each current `Supplementary
 and creates a `DerivedIndexcard` for each deriver in `trove.derive.DEFAULT_DERIVER_SET`
 
 current derivers include:
-    * "osfmap_json_mini": a [json-ld](https://en.wikipedia.org/wiki/JSON-LD) format using [OSFMAP](https://osf.io/8yczr) property keys, with some noisier properties (e.g. list of all files in a project) omitted -- this is the format expected by OSF's current search frontends
-    * "sharev2_elastic": a json format for back-compat with 2016's [SHAREv2 search api](https://staging-share.osf.io/api/v2/search/creativeworks/_search), a raw pass-thru to elasticsearch
-    * "oaidc_xml": a minimal xml format used in shtrove's [/oai-pmh/](https://staging-share.osf.io/oai-pmh/?verb=ListRecords&metadataPrefix=oai_dc) feed, following the [OAI Protocol for Metadata Harvesting](https://www.openarchives.org/OAI/openarchivesprotocol.html)
+
+* "osfmap_json_mini": a [json-ld](https://en.wikipedia.org/wiki/JSON-LD) format using [OSFMAP](https://osf.io/8yczr) property keys, with some noisier properties (e.g. list of all files in a project) omitted -- this is the format expected by OSF's current search frontends
+* "sharev2_elastic": a json format for back-compat with 2016's [SHAREv2 search api](https://staging-share.osf.io/api/v2/search/creativeworks/_search), a raw pass-thru to elasticsearch
+* "oaidc_xml": a minimal xml format used in shtrove's [/oai-pmh/](https://staging-share.osf.io/oai-pmh/?verb=ListRecords&metadataPrefix=oai_dc) feed, following the [OAI Protocol for Metadata Harvesting](https://www.openarchives.org/OAI/openarchivesprotocol.html)
 
 once all relevant `DerivedIndexcard`s are saved, `task__derive` enqueues messages
 (using `share.search.index_messenger`) to notify shtrove's "indexer daemon" that the
