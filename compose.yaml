@@ -16,14 +16,19 @@ services:
   shtrove_testbox:
     build:
       context: .
-      dockerfile: testbox.Containerfile
+      dockerfile_inline: |
+        FROM python:3.13-trixie AS shtrove_base
+        RUN pip install "django==5.2.*"
+        WORKDIR /code
+    command: make test lint type
     depends_on:
       postgres: {}
       elasticsearch8:
         condition: service_healthy
     environment:
-      # TOXENV: py310-django42
       ELASTICSEARCH8_URL: http://elasticsearch8:9200
+    volumes:
+      - ./:/code:cached
 
   ###
   # for manual testing

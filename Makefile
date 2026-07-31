@@ -1,5 +1,4 @@
 SRC=src
-TESTS=tests
 
 .PHONY=test lint type format clean
 .SILENT=test lint type
@@ -15,8 +14,13 @@ default: format lint type test
 .venv:
 	python3 -m venv .venv
 
-test: .venv/devdeps-up-to-date
-	$(IN_VENV)python -m unittest $(TESTS) --failfast
+test: shtrove_test django_shtrove_test
+
+shtrove_test: .venv/devdeps-up-to-date
+	$(IN_VENV)python -m unittest discover -s shtrove.tests --failfast
+
+django_shtrove_test: .venv/devdeps-up-to-date
+	$(IN_VENV)python src/django_shtrove/manage.py test --failfast
 
 lint: .venv/devdeps-up-to-date
 	$(IN_VENV)python -m flake8 $(SRC)
