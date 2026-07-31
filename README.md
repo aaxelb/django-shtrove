@@ -6,6 +6,4 @@ a django app for storing and sharing a trove of metadata
 
 > trove (noun): a store of valuable or delightful things.
 
-(a work in progress -- see docstrings in `src/django_shtrove/**.py` for plans/details)
-
-
+(a work in progress -- see [_TODO.md](./_TODO.md) for plans and details)
