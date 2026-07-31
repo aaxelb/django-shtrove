@@ -3,9 +3,7 @@ from collections.abc import Iterable
 import dataclasses
 import re
 from typing import Self
-
-# TODO: remove django dependency (tho it is convenient)
-from django.http import QueryDict
+import urllib.parse
 
 from trove import exceptions as trove_exceptions
 
@@ -72,15 +70,16 @@ QueryparamDict = dict[
 
 def queryparams_from_querystring(querystring: str) -> QueryparamDict:
     _queryparams: QueryparamDict = {}
-    _querydict = QueryDict(querystring)
-    for _unparsed_name, _param_value_list in _querydict.lists():
+    _param_pairs = urllib.parse.parse_qsl(
+        querystring,
+        keep_blank_values=True,
+        strict_parsing=True,
+    )
+    for _unparsed_name, _param_value in _param_pairs:
         _parsed_name = QueryparamName.from_str(_unparsed_name)
-        for _param_value in _param_value_list:
-            (
-                _queryparams
-                .setdefault(_parsed_name.family, [])
-                .append((_parsed_name, _param_value))
-            )
+        _queryparams.setdefault(_parsed_name.family, []).append(
+            (_parsed_name, _param_value),
+        )
     return _queryparams
 
 

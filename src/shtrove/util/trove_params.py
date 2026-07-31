@@ -1,12 +1,10 @@
 from __future__ import annotations
 from collections import defaultdict
+import collections.abc as cabc
 import dataclasses
 import typing
-if typing.TYPE_CHECKING:
-    from collections.abc import Mapping
+import urllib.parse
 
-# TODO: remove django dependency (tho it is convenient)
-from django.http import QueryDict
 from primitive_metadata import primitive_rdf as rdf
 
 from trove import exceptions as trove_exceptions
@@ -26,7 +24,10 @@ class BasicTroveParams:
     iri_shorthand: rdf.IriShorthand = dataclasses.field(repr=False)
     accept_mediatype: str | None
     included_relations: PropertypathSet = dataclasses.field(repr=False, compare=False)
-    attrpaths_by_type: Mapping[str, tuple[Propertypath, ...]] = dataclasses.field(repr=False, compare=False)
+    attrpaths_by_type: cabc.Mapping[str, tuple[Propertypath, ...]] = dataclasses.field(
+        repr=False,
+        compare=False,
+    )
     blend_cards: bool
 
     ###
@@ -61,7 +62,7 @@ class BasicTroveParams:
         return frozenset()
 
     @classmethod
-    def _default_attrpaths(cls) -> Mapping[str, tuple[Propertypath, ...]]:
+    def _default_attrpaths(cls) -> cabc.Mapping[str, tuple[Propertypath, ...]]:
         return {}
 
     @classmethod
@@ -79,7 +80,11 @@ class BasicTroveParams:
         return _shorthand
 
     @classmethod
-    def _gather_included_relations(cls, queryparams: _qp.QueryparamDict, shorthand: rdf.IriShorthand) -> PropertypathSet:
+    def _gather_included_relations(
+        cls,
+        queryparams: _qp.QueryparamDict,
+        shorthand: rdf.IriShorthand,
+    ) -> PropertypathSet:
         _include_params = queryparams.get('include', [])
         if _include_params:
             return frozenset((
@@ -90,7 +95,11 @@ class BasicTroveParams:
         return cls._default_include()
 
     @classmethod
-    def _gather_attrpaths(cls, queryparams: _qp.QueryparamDict, shorthand: rdf.IriShorthand) -> Mapping[
+    def _gather_attrpaths(
+        cls,
+        queryparams: _qp.QueryparamDict,
+        shorthand: rdf.IriShorthand,
+    ) -> cabc.Mapping[
         str,
         tuple[Propertypath, ...],
     ]:
@@ -121,14 +130,14 @@ class BasicTroveParams:
     # instance methods
 
     def to_querystring(self) -> str:
-        return self.to_querydict().urlencode()
+        return urllib.parse.urlencode(self.to_queryparams())
 
-    def to_querydict(self) -> QueryDict:
-        # subclasses should override and add their fields to super().to_querydict()
-        _querydict = QueryDict(mutable=True)
+    def to_queryparams(self) -> cabc.Sequence[tuple[str, str]]:
+        # subclasses should override and add their fields to super().to_queryparams()
+        _queryparams = []
         if self.accept_mediatype:
-            _querydict['acceptMediatype'] = self.accept_mediatype
+            _queryparams.append(('acceptMediatype', self.accept_mediatype))
         if self.blend_cards:
-            _querydict['blendCards'] = ''
+            _queryparams.append(('blendCards', ''))
         # TODO: iriShorthand, include, fields[...]
-        return _querydict
+        return _queryparams

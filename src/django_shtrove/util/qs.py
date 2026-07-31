@@ -1,3 +1,4 @@
+"""utilities for working with django querysets"""
 from __future__ import annotations
 from collections.abc import Generator
 from typing import TYPE_CHECKING
