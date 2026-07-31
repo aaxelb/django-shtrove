@@ -5,7 +5,7 @@ import re
 from typing import Self
 import urllib.parse
 
-from trove import exceptions as trove_exceptions
+from shtrove import exceptions as shtrove_exceptions
 
 
 ###
@@ -38,18 +38,18 @@ class QueryparamName:
     def from_str(cls, queryparam_name: str) -> Self:
         family_match = QUERYPARAM_FAMILY_REGEX.match(queryparam_name)
         if not family_match:
-            raise trove_exceptions.InvalidQueryParamName(queryparam_name)
+            raise shtrove_exceptions.InvalidQueryParamName(queryparam_name)
         family = family_match.group()
         next_position = family_match.end()
         bracketed_names = []
         while next_position < len(queryparam_name):
             bracketed_match = QUERYPARAM_FAMILYMEMBER_REGEX.match(queryparam_name, next_position)
             if not bracketed_match:
-                raise trove_exceptions.InvalidQueryParamName(queryparam_name)
+                raise shtrove_exceptions.InvalidQueryParamName(queryparam_name)
             bracketed_names.append(bracketed_match.group('name') or '')
             next_position = bracketed_match.end()
         if next_position != len(queryparam_name):
-            raise trove_exceptions.InvalidQueryParamName(queryparam_name)
+            raise shtrove_exceptions.InvalidQueryParamName(queryparam_name)
         return cls(family, tuple(bracketed_names))
 
     def __str__(self) -> str:
@@ -111,7 +111,7 @@ def get_single_value(
     try:
         (_singlevalue,) = _paramvalues
     except ValueError:
-        raise trove_exceptions.InvalidRepeatedQueryParam(str(queryparam_name))
+        raise shtrove_exceptions.InvalidRepeatedQueryParam(str(queryparam_name))
     return _singlevalue
 
 

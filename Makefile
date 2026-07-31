@@ -17,7 +17,7 @@ default: format lint type test
 test: shtrove_test django_shtrove_test
 
 shtrove_test: .venv/devdeps-up-to-date
-	$(IN_VENV)python -m unittest discover -s shtrove.tests --failfast
+	$(IN_VENV)python -m unittest discover -s shtrove --failfast
 
 django_shtrove_test: .venv/devdeps-up-to-date
 	$(IN_VENV)python src/django_shtrove/manage.py test --failfast

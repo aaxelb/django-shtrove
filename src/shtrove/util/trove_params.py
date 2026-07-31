@@ -7,16 +7,16 @@ import urllib.parse
 
 from primitive_metadata import primitive_rdf as rdf
 
-from trove import exceptions as trove_exceptions
-from trove.util.chainmap import SimpleChainMap
-from trove.util.frozen import freeze
-from trove.util.propertypath import (
+from shtrove import exceptions as shtrove_exceptions
+from shtrove.util.chainmap import SimpleChainMap
+from shtrove.util.frozen import freeze
+from shtrove.util.propertypath import (
     PropertypathSet,
     Propertypath,
     parse_propertypath, GLOB_PATHSTEP,
 )
-from trove.util import queryparams as _qp
-from trove.vocab.namespaces import namespaces_shorthand
+from shtrove.util import queryparams as _qp
+from shtrove.vocab.namespaces import namespaces_shorthand
 
 
 @dataclasses.dataclass(frozen=True)
@@ -72,7 +72,7 @@ class BasicTroveParams:
             try:
                 (_shortname,) = _qp_name.bracketed_names
             except ValueError:
-                raise trove_exceptions.InvalidQueryParamName(_qp_name)
+                raise shtrove_exceptions.InvalidQueryParamName(_qp_name)
             _prefixmap[_shortname] = _iri
         _shorthand = cls._default_shorthand()
         if _prefixmap:

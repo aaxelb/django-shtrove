@@ -3,8 +3,8 @@ import urllib
 
 from primitive_metadata import primitive_rdf as rdf
 
-from trove import exceptions as trove_exceptions
-from trove.util.queryparams import split_queryparam_value
+from shtrove import exceptions as shtrove_exceptions
+from shtrove.util.queryparams import split_queryparam_value
 
 
 ###
@@ -59,9 +59,9 @@ def parse_propertypath(
     )
     if GLOB_PATHSTEP in _path:
         if not allow_globs:
-            raise trove_exceptions.InvalidPropertyPath(serialized_path, 'no * allowed')
+            raise shtrove_exceptions.InvalidPropertyPath(serialized_path, 'no * allowed')
         if any(_pathstep != GLOB_PATHSTEP for _pathstep in _path):
-            raise trove_exceptions.InvalidPropertyPath(
+            raise shtrove_exceptions.InvalidPropertyPath(
                 serialized_path,
                 f'path must be all * or no * (got {serialized_path})',
             )

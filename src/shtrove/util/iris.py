@@ -2,7 +2,7 @@ import json
 import re
 import urllib.parse as _urp
 
-from trove import exceptions as trove_exceptions
+from shtrove import exceptions as shtrove_exceptions
 
 
 # quoth <https://www.rfc-editor.org/rfc/rfc3987.html#section-2.2>:
@@ -91,13 +91,13 @@ def get_sufficiently_unique_iri_and_scheme(iri: str) -> tuple[str, str]:
         _scheme = _scheme_match.group().lower()
         _remainder = iri[_scheme_match.end():]
         if not _remainder.startswith(COLON):
-            raise trove_exceptions.IriInvalid(f'does not look like an iri (got "{iri}")')
+            raise shtrove_exceptions.IriInvalid(f'does not look like an iri (got "{iri}")')
         if not _remainder.startswith(COLON_SLASH_SLASH):
             # for an iri without '://', assume nothing!
             return (iri, _scheme)
     else:  # may omit scheme only if `://`
         if not iri.startswith(COLON_SLASH_SLASH):
-            raise trove_exceptions.IriInvalid(f'does not look like an iri (got "{iri}")')
+            raise shtrove_exceptions.IriInvalid(f'does not look like an iri (got "{iri}")')
         _scheme = ''
         _remainder = iri
     # for an iri with '://', is "safe enough" to normalize a little:
@@ -210,5 +210,5 @@ def smells_like_iri(maybe_iri: str) -> bool:
             # nonempty suffuniq-iri and scheme
             and all(get_sufficiently_unique_iri_and_scheme(maybe_iri))
         )
-    except trove_exceptions.IriInvalid:
+    except shtrove_exceptions.IriInvalid:
         return False
