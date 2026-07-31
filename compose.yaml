@@ -1,0 +1,77 @@
+# local testing setup -- not suitable for production
+#
+volumes:
+  postgres_data_vol:
+    external: false
+  elastic8_data_vol:
+    external: false
+  rabbitmq_vol:
+    external: false
+
+services:
+
+  ###
+  # for running tests
+
+  shtrove_testbox:
+    build:
+      context: .
+      dockerfile: testbox.Containerfile
+    depends_on:
+      postgres: {}
+      elasticsearch8:
+        condition: service_healthy
+    environment:
+      # TOXENV: py310-django42
+      ELASTICSEARCH8_URL: http://elasticsearch8:9200
+
+  ###
+  # for manual testing
+
+  shtrove_server:
+    build:  # reuse image built for shtrove_testbox
+      target: testbox
+      additional_contexts:
+        testbox: service:shtrove_testbox
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - 8003:8000
+    depends_on:
+      postgres: {}
+      rabbitmq: {}
+      elasticsearch8:
+        condition: service_healthy
+    environment:
+      # TOXENV: py310-django42
+      ELASTICSEARCH8_URL: http://elasticsearch8:9200
+    volumes:
+      - ./:/code:cached  # changes to local code will reload server
+
+  ###
+  # other services
+
+  postgres:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: shtrove
+      POSTGRES_HOST_AUTH_METHOD: trust  # no security
+    volumes:
+      - postgres_data_vol:/var/lib/postgresql/data/
+
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    volumes:
+      - rabbitmq_vol:/var/lib/rabbitmq
+
+  elasticsearch8:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.19
+    environment:
+      - xpack.security.enabled=false  # no security
+      - discovery.type=single-node  # no clustering
+      - ES_JAVA_OPTS=-Xms256m -Xmx256m  # limited memory usage
+    healthcheck:
+      interval: 30s
+      retries: 10
+      test: curl -s http://localhost:9200/_cluster/health | grep -vq '"status":"red"'
+    volumes:
+      - elastic8_data_vol:/usr/share/elasticsearch/data
