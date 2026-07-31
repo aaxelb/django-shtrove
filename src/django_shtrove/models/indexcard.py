@@ -8,8 +8,6 @@ from django.db import transaction
 from django.utils import timezone
 from primitive_metadata import primitive_rdf as rdf
 
-from share.util.checksum_iri import ChecksumIri
-from django_shtrove.exceptions import DigestiveError
 from django_shtrove.models.derived_indexcard import DerivedIndexcard
 from django_shtrove.models.resource_description import (
     ArchivedResourceDescription,
@@ -18,8 +16,10 @@ from django_shtrove.models.resource_description import (
     SupplementaryResourceDescription,
 )
 from django_shtrove.models.resource_identifier import ResourceIdentifier
-from django_shtrove.vocab.namespaces import RDF
-from django_shtrove.vocab.trove import trove_indexcard_iri
+from shtrove.util.checksum import Checksum
+from shtrove.exceptions import DigestiveError
+from shtrove.vocab.namespaces import RDF
+from shtrove.vocab.trove import trove_indexcard_iri
 
 
 __all__ = ('Indexcard',)
@@ -219,7 +219,5 @@ class Indexcard(models.Model):
 def _turtlify(rdf_tripledict: rdf.RdfTripleDictionary) -> tuple[str, str]:
     '''return turtle serialization and checksum iri of that serialization'''
     _rdf_as_turtle = rdf.turtle_from_tripledict(rdf_tripledict)
-    _turtle_checksum_iri = str(
-        ChecksumIri.digest('sha-256', salt='', data=_rdf_as_turtle),
-    )
+    _turtle_checksum_iri = Checksum.digest(data=_rdf_as_turtle).as_iri()
     return (_rdf_as_turtle, _turtle_checksum_iri)

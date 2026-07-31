@@ -8,15 +8,15 @@ from django.db.models import QuerySet
 from django.db.models.functions import Substr, StrIndex
 from primitive_metadata import primitive_rdf
 
-from django_shtrove import exceptions as shtrove_exceptions
-from django_shtrove.util.iris import (
+from shtrove import exceptions as shtrove_exceptions
+from shtrove.util.iris import (
     get_sufficiently_unique_iri,
     get_sufficiently_unique_iri_and_scheme,
     IRI_SCHEME_REGEX,
     COLON,
     COLON_SLASH_SLASH,
 )
-from django_shtrove.vocab.namespaces import OWL
+from shtrove.vocab.namespaces import OWL
 
 
 # for choosing among multiple schemes
