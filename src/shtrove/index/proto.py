@@ -3,7 +3,7 @@
 import collections.abc as cabc
 import typing
 
-from shtrove.proto import (
+from shtrove.persist.proto import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
 )
@@ -11,8 +11,7 @@ from shtrove.util.propertypath import Propertypath
 
 
 class ProtoIndexStrategy(typing.Protocol):
-    def add_record(self, record: ProtoCatalogRecord, metadata: ProtoCombinedMetadata) -> None: ...
-    def remove_record(self, record: ProtoCatalogRecord) -> None: ...
+    def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
     def handle_recordsearch(self, recordsearch_args: ProtoRecordsearchArgs) -> ProtoRecordsearchHandle: ...
     def handle_valuesearch(self, valuesearch_args: ProtoValuesearchArgs) -> ProtoValuesearchHandle: ...
 
@@ -21,11 +20,11 @@ class ProtoIndexStrategy(typing.Protocol):
 # args
 
 class ProtoRecordsearchArgs(typing.Protocol):
-    ...
+    ...  # TODO
 
 
 class ProtoValuesearchArgs(typing.Protocol):
-    ...
+    ...  # TODO
 
 
 ###

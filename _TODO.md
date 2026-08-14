@@ -12,13 +12,15 @@ see docstrings in `src/django_shtrove/**.py` for more plans/details
 - views/gather/render from SHARE
 - urls from SHARE
 - django_shtrove settings
-- shtrove tests (non-django)
 - testapp
-- django_shtrove tests
+- copy trove tests
+- passing django_shtrove tests
 - linting
 - formatting
 - ci
+- entrypoints for strategies: extract, store, derive, render, index
 - thorough README
+    - link to READMEs in subfolders -- organize code conceptually
 
 
 ## done
@@ -27,3 +29,4 @@ see docstrings in `src/django_shtrove/**.py` for more plans/details
 - django scaffolding
 - django_shtrove models from SHARE
 - util from SHARE
+- shtrove tests (non-django)

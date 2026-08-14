@@ -3,10 +3,7 @@
 import enum
 import typing
 
-from shtrove.proto import (
-    ProtoCatalogRecord,
-    ProtoCombinedMetadata,
-)
+from primitive_metadata import gather
 
 
 class ProtoRenderStrategy(typing.Protocol):

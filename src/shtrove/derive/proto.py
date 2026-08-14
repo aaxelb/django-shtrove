@@ -4,8 +4,17 @@ import typing
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.proto import ProtoCombinedMetadata
+from shtrove.persist.proto import ProtoCombinedMetadata
 
 
 class ProtoDeriveStrategy(typing.Protocol):
-    def derive(self, upstream_metadata: cabc.Iterable[ProtoCombinedMetadata]) -> rdf.Literal: ...
+    def derive(self, upstream_metadata: cabc.Iterable[ProtoCombinedMetadata]) -> ProtoDerivedMetadatum: ...
+
+
+class ProtoDerivedMetadatum(typing.Protocol):
+    focus_iri: str
+    datatype_iri: str
+    derived_metadatum: rdf.Literal
+
+    # dcterms:created
+    created: datetime.datetime
