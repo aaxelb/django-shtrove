@@ -1,10 +1,13 @@
-"""shtrove.proto: interfaces for shtrove args and returns
+"""shtrove.types: interfaces for shtrove args and returns
 """
 import collections.abc as cabc
 import typing
-import uuid
 
-from primitive_metadata import primitive_rdf as rdf
+from shtrove.extract.types import ProtoExtractStrategy
+from shtrove.persist.types import ProtoPersistStrategy
+from shtrove.derive.types import ProtoDeriveStrategy
+from shtrove.index.types import ProtoIndexStrategy
+from shtrove.render.types import ProtoRenderStrategy
 
 
 class ProtoShtroveStrategy(typing.Protocol):
@@ -12,4 +15,5 @@ class ProtoShtroveStrategy(typing.Protocol):
     def way_to_persist(self) -> ProtoPersistStrategy: ...
     def each_way_to_derive(self) -> cabc.Iterator[ProtoDeriveStrategy]: ...
     def each_way_to_index(self) -> cabc.Iterator[ProtoIndexStrategy]: ...
+    def way_to_search(self, name: str = '') -> ProtoIndexStrategy: ...
     def way_to_render(self, accepts: cabc.Sequence[str] = ()) -> ProtoRenderStrategy: ...

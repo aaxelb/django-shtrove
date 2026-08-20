@@ -1,4 +1,4 @@
-"""shtrove.extract.proto: abstract interface for extracting metadata from a type of document
+"""shtrove.extract.types: abstract interface for extracting metadata from a type of document
 """
 import typing
 

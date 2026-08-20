@@ -1,7 +1,7 @@
 import dataclasses
 
 from shtrove.util.datetime import now_utc
-from .proto import ProtoResourceMetadatum
+from .types import ProtoResourceMetadatum
 
 
 @dataclasses.dataclasss

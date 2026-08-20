@@ -1,10 +1,6 @@
 """
 TODO:
 
-- use entry-points to register/discover indexing strategy implementations
-    - replace static share.search.index_strategy._AvailableStrategies
-    - see https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/#using-package-metadata
-
 - simplified base/abstract share.search.index_strategy.IndexStrategy:
     - (for more flexible interface allowing non-elastic strategies) consider removing
         IndexStrategy.SpecificIndex from abstract base class, let implementations handle

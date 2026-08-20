@@ -21,7 +21,7 @@ def parse_list(env_value: str, *, delimiter: str = ',') -> list[str]:
 
 
 # one or more available extract strategies
-SHTROVE_EXTRACT_STRAT_PY_LIST=parse_list(
+SHTROVE_EXTRACT_STRAT_PY=parse_list(
     os.environ.get(
         'SHTROVE_EXTRACT_STRAT_PY_LIST',
         'shtrove.derive.basic.TurtleExtractStrat',

@@ -17,6 +17,28 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 
+[project.entry-points."shtrove.extract"]
+turtle = "shtrove.extract.basic:TurtleExtract"
+# TODO: jsonld =
+
+[project.entry-points."shtrove.persist"]
+django_shtrove_persist = "django_shtrove.persist:DjangoShtrovePersist"
+
+[project.entry-points."shtrove.derive"]
+# TODO: oai_dc?
+
+[project.entry-points."shtrove.index"]
+shtrovesearch_elastic8 = "django_shtrove.index:ShtrovesearchElastic8Index"
+
+[project.entry-points."shtrove.render"]
+html = "shtrove.render.html:HtmlRender"
+turtle = "shtrove.render.turtle:TurtleRender"
+jsonapi = "shtrove.render.jsonapi:JsonApiRender"
+jsonld = "shtrove.render.jsonld:JsonLdRender"
+shtrovesearch_csv = "shtrove.render.shtrovesearch_csv:ShtrovesearchCsvRender"
+shtrovesearch_tsv = "shtrove.render.shtrovesearch_tsv:ShtrovesearchTsvRender"
+shtrovesearch_json = "shtrove.render.shtrovesearch_json:ShtrovesearchJsonRender"
+
 [dependency-groups]
 lint = [
   'flake8',

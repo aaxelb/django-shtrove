@@ -1,10 +1,10 @@
-"""shtrove.derive.proto: interface for deriving a specific representation of a metadata record
+"""shtrove.derive.types: interface for deriving a specific representation of a metadata record
 """
 import typing
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.persist.proto import ProtoCombinedMetadata
+from shtrove.persist.types import ProtoCombinedMetadata
 
 
 class ProtoDeriveStrategy(typing.Protocol):

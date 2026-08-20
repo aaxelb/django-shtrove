@@ -1,4 +1,4 @@
-"""shtrove.render.proto: interface for rendering shtrove api responses
+"""shtrove.render.types: interface for rendering shtrove api responses
 """
 import enum
 import typing
@@ -7,6 +7,9 @@ from primitive_metadata import gather
 
 
 class ProtoRenderStrategy(typing.Protocol):
+    @classmethod
+    def mediatype(self) -> str: ...
+
     def render_response(self, focus: gather.Focus, gathering: gather.Gathering) -> ProtoRendering: ...
 
 

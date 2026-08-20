@@ -1,9 +1,9 @@
-"""shtrove.index.proto: interface for indexing metadata records for easy searching
+"""shtrove.index.types: interface for indexing metadata records for easy searching
 """
 import collections.abc as cabc
 import typing
 
-from shtrove.persist.proto import (
+from shtrove.persist.types import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
 )
@@ -11,13 +11,23 @@ from shtrove.util.propertypath import Propertypath
 
 
 class ProtoIndexStrategy(typing.Protocol):
+    ###
+    # index lifecycle
+    def do_setup(self) -> None: ...
+    def do_teardown(self) -> None: ...
+
+    ###
+    # adding/updating/removing metadata
     def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
+
+    ###
+    # searching
     def handle_recordsearch(self, recordsearch_args: ProtoRecordsearchArgs) -> ProtoRecordsearchHandle: ...
     def handle_valuesearch(self, valuesearch_args: ProtoValuesearchArgs) -> ProtoValuesearchHandle: ...
 
 
 ###
-# args
+# search args
 
 class ProtoRecordsearchArgs(typing.Protocol):
     ...  # TODO
@@ -28,7 +38,7 @@ class ProtoValuesearchArgs(typing.Protocol):
 
 
 ###
-# response handles
+# search response handles
 
 class ProtoResponseHandle(typing.Protocol):
     cursor: ProtoPageCursor
@@ -76,6 +86,6 @@ class ProtoValuesearchDateMatch(typing.Protocol):
     record_count: rdf.Literal
 
 
-class ProtoPropertypathUsage:
+class ProtoPropertypathUsage(typing.Protocol):
     path: PropertyPath
     usage_count: rdf.Literal

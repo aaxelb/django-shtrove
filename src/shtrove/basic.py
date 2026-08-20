@@ -1,40 +1,72 @@
+from shtrove.types import ProtoShtroveStrategy
+
 
 @dataclasses.dataclass
 class BasicShtroveStrategy(ProtoShtroveStrategy):
-    extract_strategies: cabc.Iterable[str] = (
-        # TODO: 'shtrove.extract.basic.TurtleExtractStrategy',
-        # TODO: 'shtrove.extract.basic.JsonldExtractStrategy',
-    )
-    persist_strategy: str = 'shtrove.persist.basic.TurtleExtractStrategy'
-    derive_strategies: cabc.Iterable[str] = (
-        # TODO: 'shtrove.derive.basic.OaidcDeriveStrategy'
-    )
-    index_strategies: cabc.Iterable[str] = ()
-    render_strategies: cabc.Iterable[str] = (
-        # TODO: 'shtrove.render.basic.HtmlRenderStrategy',
-        # TODO: 'shtrove.render.basic.TurtleRenderStrategy',
-        # TODO: 'shtrove.render.basic.JsonldRenderStrategy',
-    )
+    ###
+    # for ProtoShtroveStrategy
 
     def way_to_extract(self, mediatype: str) -> ProtoExtractStrategy:
-        # TODO: from entrypoints
-        return ...
+        # TODO: better handle errors, init args, mediatype collisions
+        return next(
+            _extract_type()
+            for _extract_type in self._each_extract_type()
+            if _extract_type.accepts(mediatype)
+        )
 
     def way_to_persist(self) -> ProtoPersistStrategy:
-        # TODO: from entrypoints
-        return ...
+        # TODO: basic persist (without database) -- write to files?
+        raise NotImplementedError('no basic persist exists')
 
     def each_way_to_derive(self) -> cabc.Iterator[ProtoDeriveStrategy]:
-        # TODO: from entrypoints
-        return ...
+        # TODO: handle errors, init args
+        for _derive_type in self._each_derive_type():
+            yield _derive_type()
 
     def each_way_to_index(self) -> cabc.Iterator[ProtoIndexStrategy]:
-        # TODO: from entrypoints
-        return ...
+        # TODO: basic index (without elasticsearch)?
+        raise NotImplementedError('no basic index exists')
 
-    def way_to_render(self, accepting: cabc.Sequence[str] = ()) -> ProtoRenderStrategy:
-        # TODO: from entrypoints
-        return ...
+    def way_to_search(self, name: str = '') -> ProtoIndexStrategy:
+        # TODO: basic index (without elasticsearch)?
+        raise NotImplementedError('no basic search index exists')
+
+    def way_to_render(self, accepting: cabc.Sequence[str]) -> ProtoRenderStrategy:
+        # TODO: better handle errors, init args, mediatype params, `Accept` header semantics...
+        return next(
+            self._render_types_by_mediatype[_mediatype]()
+            for _mediatype in accepting
+            if _mediatype in self._render_types_by_mediatype
+        )
+
+    ###
+    # loading entrypoints
+    # (TODO: should these be cached? is accessing package metadata slow?)
+
+    def _each_extract_type(self) -> cabc.Iterable[type[ProtoExtractStrategy]]:
+        return load_each_entry_point('shtrove.extract')
+
+    def _each_derive_type(self) -> cabc.Iterable[type[ProtoDeriveStrategy]]:
+        return load_each_entry_point('shtrove.derive')
+
+    def _each_render_type(self) -> cabc.Sequence[type[ProtoRenderStrategy]]:
+        return load_each_entry_point('shtrove.render')
+
+    @functools.cached_property
+    def _render_types_by_mediatype(self) -> cabc.Mapping[str, type[ProtoRenderStrategy]]:
+        _by_mediatype = {}
+        for _render_type in self._each_render_type():
+            _mediatype = _render_type.mediatype()
+            if _mediatype in _by_mediatype:
+                raise NotImplementedError(
+                    'need to choose from multiple render strategies for a mediatype',
+                    _mediatype,
+                )
+            _by_mediatype[_mediatype] = _render_type
+        return _by_mediatype
+
+    ###
+    # conveniences
 
     def ingest(
         self,
@@ -50,19 +82,27 @@ class BasicShtroveStrategy(ProtoShtroveStrategy):
     ) -> None:
         '''ingest: extract + derive + persist + index'''
         # extract
-        _metadatum = shtrove.way_to_extract(input_mediatype).extract(
+        _metadatum = self.way_to_extract(input_mediatype).extract(
             input_document,
             focus_iri=focus_iri,
         )
         # persist
-        _record = shtrove.way_to_persist().store_metadatum(_metadatum)
+        if is_supplementary:
+            _record = self.way_to_persist().store_supplementary_metadatum(
+                _metadatum,
+
+            )
+        _record = self.way_to_persist().store_metadatum(
+            _metadatum,
+
+        )
         # derive
-        _combined_metadata = shtrove.way_to_persist().get_combined_metadata(_record.focus_iri)
-        for _derive_strat in shtrove.each_way_to_derive():
+        _combined_metadata = self.way_to_persist().get_combined_metadata(_record.focus_iri)
+        for _derive_strat in self.each_way_to_derive():
             _derived_metadatum = _derive_strat.derive(_combined_metadata)
             if _derived_metadatum is not None:
                 _persist_strat.store_derived_metadatum(derived_metadatum)
         # index
-        for _index_strat in shtrove.each_way_to_index():
+        for _index_strat in self.each_way_to_index():
             _index_strat.set_item_metadata(_combined_metadata)
         return _record

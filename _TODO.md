@@ -18,7 +18,6 @@ see docstrings in `src/django_shtrove/**.py` for more plans/details
 - linting
 - formatting
 - ci
-- entrypoints for strategies: extract, store, derive, render, index
 - thorough README
     - link to READMEs in subfolders -- organize code conceptually
 
@@ -30,3 +29,7 @@ see docstrings in `src/django_shtrove/**.py` for more plans/details
 - django_shtrove models from SHARE
 - util from SHARE
 - shtrove tests (non-django)
+- entrypoints for strategies: extract, store, derive, render, index
+- use entry-points to register/discover indexing strategy implementations
+    - replace static share.search.index_strategy._AvailableStrategies
+    - see https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/#using-package-metadata

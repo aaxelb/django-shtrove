@@ -6,7 +6,7 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
-from .proto import (
+from .types import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
     ProtoResourceMetadatum,
@@ -14,8 +14,7 @@ from .proto import (
 )
 
 
-class EphemeralPersist(ProtoPersistStrategy):
-    ...  # TODO
+# TODO: basic filetree persist? dummy ephemeral persist for testing?
 
 
 @dataclasses.dataclass(kw_only=True)

@@ -1,18 +1,37 @@
-"""shtrove.derive.proto: interface for deriving a specific representation of a metadata record
+"""shtrove.derive.types: interface for deriving a specific representation of a metadata record
 """
 import typing
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.extract.proto import ProtoResourceMetadatum
+from shtrove.extract.types import ProtoResourceMetadatum
 
 
 class ProtoPersistStrategy(typing.Protocol):
     ###
     # ingest
 
-    def store_metadatum(self, resource_metadatum: ProtoResourceMetadatum) -> ProtoCatalogRecord: ...
-    def store_derived_metadatum(self, derived_metadatum: ProtoDerivedMetadatum) -> None: ...
+    def store_metadatum(
+        self,
+        resource_metadatum: ProtoResourceMetadatum,
+        *,
+        record_identifier: str = '',
+        restore_deleted: bool = False,
+    ) -> ProtoCatalogRecord: ...
+
+    def store_supplementary_metadatum(
+        self,
+        resource_metadatum: ProtoResourceMetadatum,
+        *,
+        supplement_identifier: str,
+    ) -> ProtoCatalogRecord: ...
+
+    def store_derived_metadatum(
+        self,
+        derived_metadatum: ProtoDerivedMetadatum,
+        *,
+        record
+    ) -> None: ...
 
     ###
     # browse by record uuid
