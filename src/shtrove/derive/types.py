@@ -7,7 +7,7 @@ from primitive_metadata import primitive_rdf as rdf
 from shtrove.persist.types import ProtoCombinedMetadata
 
 
-class ProtoDeriveStrategy(typing.Protocol):
+class ProtoDerive(typing.Protocol):
     def derive(self, upstream_metadata: cabc.Iterable[ProtoCombinedMetadata]) -> ProtoDerivedMetadatum: ...
 
 

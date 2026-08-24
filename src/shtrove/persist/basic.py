@@ -10,11 +10,16 @@ from .types import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
     ProtoResourceMetadatum,
-    ProtoPersistStrategy,
+    ProtoPersist,
 )
 
 
-# TODO: basic filetree persist? dummy ephemeral persist for testing?
+class BasicMemPersist(ProtoPersist):
+    ...  # TODO: basic ephemeral in-memory implementation
+
+
+class BasicFiletreePersist(ProtoPersist):
+    ...  # TODO: basic implementation using a filetree
 
 
 @dataclasses.dataclass(kw_only=True)

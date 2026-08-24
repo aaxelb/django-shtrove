@@ -6,7 +6,7 @@ import typing
 from primitive_metadata import gather
 
 
-class ProtoRenderStrategy(typing.Protocol):
+class ProtoRender(typing.Protocol):
     @classmethod
     def mediatype(self) -> str: ...
 

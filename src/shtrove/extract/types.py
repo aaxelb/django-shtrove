@@ -3,7 +3,7 @@
 import typing
 
 
-class ProtoExtractStrategy(typing.Protocol):
+class ProtoExtract(typing.Protocol):
     @classmethod
     def accepts(cls, mediatype: str) -> bool: ...
 

@@ -1,12 +1,12 @@
-from shtrove.types import ProtoShtroveStrategy
+from shtrove.types import ProtoShtrove
 
 
 @dataclasses.dataclass
-class BasicShtroveStrategy(ProtoShtroveStrategy):
+class BasicShtrove(ProtoShtrove):
     ###
-    # for ProtoShtroveStrategy
+    # for ProtoShtrove
 
-    def way_to_extract(self, mediatype: str) -> ProtoExtractStrategy:
+    def way_to_extract(self, mediatype: str) -> ProtoExtract:
         # TODO: better handle errors, init args, mediatype collisions
         return next(
             _extract_type()
@@ -14,24 +14,24 @@ class BasicShtroveStrategy(ProtoShtroveStrategy):
             if _extract_type.accepts(mediatype)
         )
 
-    def way_to_persist(self) -> ProtoPersistStrategy:
+    def way_to_persist(self) -> ProtoPersist:
         # TODO: basic persist (without database) -- write to files?
         raise NotImplementedError('no basic persist exists')
 
-    def each_way_to_derive(self) -> cabc.Iterator[ProtoDeriveStrategy]:
+    def each_way_to_derive(self) -> cabc.Iterator[ProtoDerive]:
         # TODO: handle errors, init args
         for _derive_type in self._each_derive_type():
             yield _derive_type()
 
-    def each_way_to_index(self) -> cabc.Iterator[ProtoIndexStrategy]:
+    def each_way_to_index(self) -> cabc.Iterator[ProtoIndex]:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError('no basic index exists')
 
-    def way_to_search(self, name: str = '') -> ProtoIndexStrategy:
+    def way_to_search(self, name: str = '') -> ProtoIndex:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError('no basic search index exists')
 
-    def way_to_render(self, accepting: cabc.Sequence[str]) -> ProtoRenderStrategy:
+    def way_to_render(self, accepting: cabc.Sequence[str]) -> ProtoRender:
         # TODO: better handle errors, init args, mediatype params, `Accept` header semantics...
         return next(
             self._render_types_by_mediatype[_mediatype]()
@@ -43,17 +43,17 @@ class BasicShtroveStrategy(ProtoShtroveStrategy):
     # loading entrypoints
     # (TODO: should these be cached? is accessing package metadata slow?)
 
-    def _each_extract_type(self) -> cabc.Iterable[type[ProtoExtractStrategy]]:
+    def _each_extract_type(self) -> cabc.Iterable[type[ProtoExtract]]:
         return load_each_entry_point('shtrove.extract')
 
-    def _each_derive_type(self) -> cabc.Iterable[type[ProtoDeriveStrategy]]:
+    def _each_derive_type(self) -> cabc.Iterable[type[ProtoDerive]]:
         return load_each_entry_point('shtrove.derive')
 
-    def _each_render_type(self) -> cabc.Sequence[type[ProtoRenderStrategy]]:
+    def _each_render_type(self) -> cabc.Sequence[type[ProtoRender]]:
         return load_each_entry_point('shtrove.render')
 
     @functools.cached_property
-    def _render_types_by_mediatype(self) -> cabc.Mapping[str, type[ProtoRenderStrategy]]:
+    def _render_types_by_mediatype(self) -> cabc.Mapping[str, type[ProtoRender]]:
         _by_mediatype = {}
         for _render_type in self._each_render_type():
             _mediatype = _render_type.mediatype()

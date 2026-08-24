@@ -7,7 +7,7 @@ from primitive_metadata import primitive_rdf as rdf
 from shtrove.extract.types import ProtoResourceMetadatum
 
 
-class ProtoPersistStrategy(typing.Protocol):
+class ProtoPersist(typing.Protocol):
     ###
     # ingest
 

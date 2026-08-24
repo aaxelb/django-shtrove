@@ -10,7 +10,7 @@ from shtrove.persist.types import (
 from shtrove.util.propertypath import Propertypath
 
 
-class ProtoIndexStrategy(typing.Protocol):
+class ProtoIndex(typing.Protocol):
     ###
     # index lifecycle
     def do_setup(self) -> None: ...

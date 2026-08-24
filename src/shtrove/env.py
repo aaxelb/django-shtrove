@@ -24,15 +24,15 @@ def parse_list(env_value: str, *, delimiter: str = ',') -> list[str]:
 SHTROVE_EXTRACT_STRAT_PY=parse_list(
     os.environ.get(
         'SHTROVE_EXTRACT_STRAT_PY_LIST',
-        'shtrove.derive.basic.TurtleExtractStrat',
+        'shtrove.derive.basic.TurtleExtract',
     ),
 )
 # exactly one persist strategy, since it mints record uuids and acts as source of truth
-# (if you want to persist multiple ways, implement a single ProtoPersistStrategy 
+# (if you want to persist multiple ways, implement a single ProtoPersist 
 # that coordinates among them however you want to provide a consistent interface)
 SHTROVE_PERSIST_STRAT_PY=os.environ.get(
     'SHTROVE_PERSIST_STRAT_PY',
-    'shtrove.persist.basic.BasicMemPersistStrategy',
+    'shtrove.persist.basic.BasicFiletreePersist',  # TODO
 )
 # zero or more parallel derive strategies
 SHTROVE_DERIVE_STRAT_PY_LIST=parse_list(os.environ.get('SHTROVE_DERIVE_STRAT_PY_LIST') or '')
@@ -42,6 +42,6 @@ SHTROVE_INDEX_STRAT_PY_LIST=parse_list(os.environ.get('SHTROVE_INDEX_STRAT_PY_LI
 SHTROVE_RENDER_STRAT_PY_LIST=parse_list(
     os.environ.get(
         'SHTROVE_RENDER_STRAT_PY_LIST',
-        'shtrove.derive.basic.TurtleExtractStrat',
+        'shtrove.derive.basic.TurtleExtract',
     ),
 )
