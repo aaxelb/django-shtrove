@@ -14,13 +14,13 @@ a django app (and assorted tools) to share a trove of (meta)data
 a python package with abstract interfaces and basic tools for troving and sharing (meta)data
 
 - defines types (python protocols) for clusters of metadata-catalog functionality:
-    - `ProtoExtract`: parse metadata from a document
+    - `ProtoExtract`: parse rdf (meta)data from a digital document
     - `ProtoPersist`: store (and browse) metadata as catalog records
     - `ProtoIndex`: index (and search) metadata from catalog records
     - `ProtoDerive`: serialize a catalog record following some metadata format
     - `ProtoRender`: serialize a shtrove api response following some api standard
     - `ProtoShtrove`: tie the rest together with methods for ingest, browse, and search
-- has basic imp(lamentation)s of some of those interfaces:
+- basic imp(lamentation)s of some of those interfaces:
     - `ProtoExtract`: `TurtleExtract`
     - `ProtoRender`:`HtmlRender`, `JsonApiRender`, `JsonLdRender`, `TurtleRender`
     - `ProtoShtrove`: `BasicShtrove`
@@ -41,11 +41,11 @@ a python package with abstract interfaces and basic tools for troving and sharin
 
 ### django_shtrove
 a django app that provides:
-- `DjangoShtrove`: a `ProtoShtrove` implementation configured from django project settings
 - `DjangoShtrovePersist`: a `ProtoPersist` implementation using django models 
 - `ShtrovesearchElastic8`: a `ProtoIndex` implementation using elasticsearch8
+- `DjangoShtrove`: a `ProtoShtrove` implementation configured from django project settings
 - django views for searching and browsing a given `ProtoShtrove`
-    - default url namespace:
+    - `shtrove.urls` url namespace contains:
         - `/browse`: look up records by given identifier
         - `/record-search`: find records matching given search filters and text
         - `/value-search`: find values used at given metadata property paths
