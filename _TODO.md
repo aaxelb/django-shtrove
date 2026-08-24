@@ -3,8 +3,9 @@
 see docstrings in `src/*/**.py` for more plans/details
 
 ## yet to do
+- refine local dev setup (all Makefile commands working)
 - django_shtrove migrations
-- local dev setup (compose.yaml) (partly)
+- django_shtrove `ProtoPersist` imp (using models)
 - index strategies from SHARE (`TrovesearchDenormIndexStrategy` to `ShtrovesearchIndexES8(ProtoIndex)`)
 - management commands from SHARE (`shtrove_index_setup`, `shtrove_index_teardown`)
 - admin interface from SHARE/trove (shtrove models, index status/lifecycle)
@@ -15,16 +16,17 @@ see docstrings in `src/*/**.py` for more plans/details
 - django_shtrove urls
 - testapp
 - passing django_shtrove tests
-- linting
-- formatting
-- ci
+- auto-linting/formatting
+- ci (`make ci`)
 - thorough README and code docs
     - link to READMEs in subfolders -- organize code conceptually
+    - make sure docstrings and md files agree
 
 
 ## done
 - basic README
 - initial project structure
+- basic local dev setup (Makefile, compose.yaml)
 - document initial plans in docstrings
 - django scaffolding
 - django_shtrove models from SHARE
