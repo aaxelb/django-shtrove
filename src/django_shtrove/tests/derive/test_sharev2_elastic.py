@@ -11,7 +11,7 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
 
     def setUp(self):
         # un-obfuscated ids, please
-        _patcher = mock.patch('share.util.IDObfuscator.encode', new=lambda x: x.id)
+        _patcher = mock.patch("share.util.IDObfuscator.encode", new=lambda x: x.id)
         _patcher.start()
         self.addCleanup(_patcher.stop)
 
@@ -19,11 +19,9 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
         self.assertEqual(expected, json.loads(actual))
 
     expected_outputs = {
-        'blarg-item': SHOULD_SKIP,
-        'blarg-project': {
-            "contributors": [
-                "me me"
-            ],
+        "blarg-item": SHOULD_SKIP,
+        "blarg-project": {
+            "contributors": ["me me"],
             "date": "2024-02-14",
             "date_created": "2345-01-01T00:00:00",
             "date_modified": "2345-02-02T00:00:00",
@@ -35,7 +33,7 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                     {
                         "cited_as": "me me",
                         "name": "me me",
-                        "relation": "http://purl.org/dc/terms/creator"
+                        "relation": "http://purl.org/dc/terms/creator",
                     }
                 ]
             },
@@ -44,32 +42,26 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                 "data": False,
                 "materials": False,
                 "papers": False,
-                "supplements": False
+                "supplements": False,
             },
             "retracted": False,
             "source_config": "--sourceconfig-label--",
             "source_unique_id": "--sourceunique-id--",
-            "sources": [
-                "--source-title--"
-            ],
+            "sources": ["--source-title--"],
             "title": "title",
             "type": "project",
             "types": ["project"],
-            "withdrawn": False
+            "withdrawn": False,
         },
-        'sharev2-with-subjects': {
-            "contributors": [
-                "Some Rando"
-            ],
+        "sharev2-with-subjects": {
+            "contributors": ["Some Rando"],
             "date": "2019-01-23",
             "date_created": "2345-01-01T00:00:00",
             "date_modified": "2345-02-02T00:00:00",
             "date_published": "2019-01-23",
             "date_updated": "2019-01-23",
             "id": "--suid_id--",
-            "identifiers": [
-                "http://osf.example/chair/"
-            ],
+            "identifiers": ["http://osf.example/chair/"],
             "indexcard_id": "--indexcard-id--",
             "lists": {
                 "contributors": [
@@ -77,7 +69,7 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                         "cited_as": "Some Rando",
                         "identifiers": [
                             "http://osf.example/rando/",
-                            "mailto:rando@example.com"
+                            "mailto:rando@example.com",
                         ],
                         "name": "Some Rando",
                         "relation": "http://purl.org/dc/terms/creator",
@@ -85,49 +77,43 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                         "types": [
                             "agent",
                             "person",
-                        ]
+                        ],
                     }
                 ],
                 "lineage": [
                     {
-                        "identifiers": [
-                            "http://osf.example/mdept/"
-                        ],
+                        "identifiers": ["http://osf.example/mdept/"],
                         "title": "Miscellaneous department",
                         "type": "registration",
                         "types": [
                             "creative work",
                             "publication",
                             "registration",
-                        ]
+                        ],
                     },
                     {
-                        "identifiers": [
-                            "http://osf.example/vroom/"
-                        ],
+                        "identifiers": ["http://osf.example/vroom/"],
                         "title": "Various room",
                         "type": "registration",
                         "types": [
                             "creative work",
                             "publication",
                             "registration",
-                        ]
-                    }
-                ]
+                        ],
+                    },
+                ],
             },
             "osf_related_resource_types": {
                 "analytic_code": False,
                 "data": False,
                 "materials": False,
                 "papers": False,
-                "supplements": False
+                "supplements": False,
             },
             "retracted": False,
             "source_config": "--sourceconfig-label--",
             "source_unique_id": "--sourceunique-id--",
-            "sources": [
-                "--source-title--"
-            ],
+            "sources": ["--source-title--"],
             "title": "Assorted chair",
             "type": "registration",
             "types": [
@@ -135,9 +121,9 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                 "publication",
                 "registration",
             ],
-            "withdrawn": False
+            "withdrawn": False,
         },
-        'osfmap-registration': {
+        "osfmap-registration": {
             "contributors": ["JW"],
             "date": "2021-10-18",
             "date_created": "2345-01-01T00:00:00",
@@ -156,21 +142,17 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                 "contributors": [
                     {
                         "cited_as": "JW",
-                        "identifiers": [
-                            "https://osf.example/bhcjn"
-                        ],
+                        "identifiers": ["https://osf.example/bhcjn"],
                         "name": "JW",
-                        "relation": "http://purl.org/dc/terms/creator"
+                        "relation": "http://purl.org/dc/terms/creator",
                     }
                 ],
                 "hosts": [
                     {
                         "cited_as": "OSF",
-                        "identifiers": [
-                            "https://osf.example"
-                        ],
+                        "identifiers": ["https://osf.example"],
                         "name": "OSF",
-                        "relation": "http://www.w3.org/ns/dcat#accessService"
+                        "relation": "http://www.w3.org/ns/dcat#accessService",
                     }
                 ],
                 "publishers": [
@@ -178,23 +160,21 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
                         "cited_as": "OSF Registries",
                         "identifiers": [
                             "https://osf.example/",
-                            "https://osf.io/registries/osf"
+                            "https://osf.io/registries/osf",
                         ],
                         "name": "OSF Registries",
-                        "relation": "http://purl.org/dc/terms/publisher"
+                        "relation": "http://purl.org/dc/terms/publisher",
                     }
-                ]
+                ],
             },
             "osf_related_resource_types": {
                 "analytic_code": False,
                 "data": False,
                 "materials": False,
                 "papers": False,
-                "supplements": False
+                "supplements": False,
             },
-            "publishers": [
-                "OSF Registries"
-            ],
+            "publishers": ["OSF Registries"],
             "retracted": False,
             "source_config": "--sourceconfig-label--",
             "source_unique_id": "--sourceunique-id--",
@@ -208,9 +188,7 @@ class TestShareV2ElasticDeriver(BaseIndexcardDeriverTest):
             ],
             "title": "IA/IMLS Demo",
             "type": "registration",
-            "types": [
-                "registration"
-            ],
-            "withdrawn": False
+            "types": ["registration"],
+            "withdrawn": False,
         },
     }

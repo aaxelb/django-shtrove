@@ -4,7 +4,8 @@ from django.test import SimpleTestCase
 
 from trove.trovesearch.search_params import (
     SearchText,
-    SearchFilter, DEFAULT_PROPERTYPATH_SET,
+    SearchFilter,
+    DEFAULT_PROPERTYPATH_SET,
 )
 from trove.util.queryparams import QueryparamName, queryparams_from_querystring
 from trove.vocab.namespaces import OSFMAP, RDF, DCTERMS
@@ -13,114 +14,162 @@ from trove.vocab.osfmap import osfmap_json_shorthand
 
 class TestSearchText(SimpleTestCase):
     def test_from_queryparam_family_with_empty_value(self):
-        _qp = queryparams_from_querystring('myBlargText[foo]=')
-        result = SearchText.from_queryparam_family(_qp, 'myBlargText', osfmap_json_shorthand())
+        _qp = queryparams_from_querystring("myBlargText[foo]=")
+        result = SearchText.from_queryparam_family(
+            _qp, "myBlargText", osfmap_json_shorthand()
+        )
         self.assertEqual(result, frozenset())
 
     def test_single_word(self):
-        qp = queryparams_from_querystring('myBlargText=word')
-        (st,) = SearchText.from_queryparam_family(qp, 'myBlargText', osfmap_json_shorthand())
+        qp = queryparams_from_querystring("myBlargText=word")
+        (st,) = SearchText.from_queryparam_family(
+            qp, "myBlargText", osfmap_json_shorthand()
+        )
         self.assertEqual(st.text, "word")
         self.assertEqual(st.propertypath_set, DEFAULT_PROPERTYPATH_SET)
 
     def test_multiple_words(self):
-        qp = queryparams_from_querystring('myBlargText=apple&myBlargText=banana&myBlargText=cherry&anotherText=no')
-        result = SearchText.from_queryparam_family(qp, 'myBlargText', osfmap_json_shorthand())
-        self.assertEqual(result, {SearchText('apple'), SearchText('banana'), SearchText('cherry')})
+        qp = queryparams_from_querystring(
+            "myBlargText=apple&myBlargText=banana&myBlargText=cherry&anotherText=no"
+        )
+        result = SearchText.from_queryparam_family(
+            qp, "myBlargText", osfmap_json_shorthand()
+        )
+        self.assertEqual(
+            result, {SearchText("apple"), SearchText("banana"), SearchText("cherry")}
+        )
 
     def test_text_with_spaces(self):
         phrases = [
             "multi word phrase",
             'phrase with "double quotes"',
-            '~phrase~ with +special.characters AND \'mismatched quotes"'
+            "~phrase~ with +special.characters AND 'mismatched quotes\"",
         ]
         for phrase in phrases:
-            qp = queryparams_from_querystring(urllib.parse.urlencode({'myBlargText': phrase}))
-            (st,) = SearchText.from_queryparam_family(qp, 'myBlargText', osfmap_json_shorthand())
+            qp = queryparams_from_querystring(
+                urllib.parse.urlencode({"myBlargText": phrase})
+            )
+            (st,) = SearchText.from_queryparam_family(
+                qp, "myBlargText", osfmap_json_shorthand()
+            )
             self.assertEqual(st.text, phrase)
             self.assertEqual(st.propertypath_set, DEFAULT_PROPERTYPATH_SET)
 
     def test_with_propertypath_set(self):
-        qp = queryparams_from_querystring('myBlargText[title]=foo')
-        result = SearchText.from_queryparam_family(qp, 'myBlargText', osfmap_json_shorthand())
-        self.assertEqual(result, {
-            SearchText('foo', frozenset({(DCTERMS.title,)}))
-        })
+        qp = queryparams_from_querystring("myBlargText[title]=foo")
+        result = SearchText.from_queryparam_family(
+            qp, "myBlargText", osfmap_json_shorthand()
+        )
+        self.assertEqual(result, {SearchText("foo", frozenset({(DCTERMS.title,)}))})
 
     def test_with_shorthand(self):
-        qp = queryparams_from_querystring('myBlargText[a]=foo&myBlargText[b:blarg]=bar')
-        _shorthand = osfmap_json_shorthand().with_update({
-            'a': 'https://vocab.example/a',
-            'b': 'https://vocab.example/b/',
-        })
-        result = SearchText.from_queryparam_family(qp, 'myBlargText', _shorthand)
-        self.assertEqual(result, {
-            SearchText('foo', frozenset({('https://vocab.example/a',)})),
-            SearchText('bar', frozenset({('https://vocab.example/b/blarg',)})),
-        })
+        qp = queryparams_from_querystring("myBlargText[a]=foo&myBlargText[b:blarg]=bar")
+        _shorthand = osfmap_json_shorthand().with_update(
+            {
+                "a": "https://vocab.example/a",
+                "b": "https://vocab.example/b/",
+            }
+        )
+        result = SearchText.from_queryparam_family(qp, "myBlargText", _shorthand)
+        self.assertEqual(
+            result,
+            {
+                SearchText("foo", frozenset({("https://vocab.example/a",)})),
+                SearchText("bar", frozenset({("https://vocab.example/b/blarg",)})),
+            },
+        )
 
 
 class TestSearchFilterPath(SimpleTestCase):
     def test_from_param(self):
         _cases = {
-            ('foo[resourceType]', 'Project'): SearchFilter(
+            ("foo[resourceType]", "Project"): SearchFilter(
                 propertypath_set=frozenset([(RDF.type,)]),
                 value_set=frozenset([OSFMAP.Project]),
                 operator=SearchFilter.FilterOperator.ANY_OF,
             ),
-            ('foo[urn:foo][none-of]', 'urn:bar,urn:baz'): SearchFilter(
-                propertypath_set=frozenset([('urn:foo',)]),
-                value_set=frozenset(['urn:bar', 'urn:baz']),
+            ("foo[urn:foo][none-of]", "urn:bar,urn:baz"): SearchFilter(
+                propertypath_set=frozenset([("urn:foo",)]),
+                value_set=frozenset(["urn:bar", "urn:baz"]),
                 operator=SearchFilter.FilterOperator.NONE_OF,
             ),
-            ('foo[dateCreated]', '2000'): SearchFilter(
+            ("foo[dateCreated]", "2000"): SearchFilter(
                 propertypath_set=frozenset([(DCTERMS.created,)]),
-                value_set=frozenset(['2000']),
+                value_set=frozenset(["2000"]),
                 operator=SearchFilter.FilterOperator.AT_DATE,
             ),
-            ('foo[dateCreated,dateModified][after]', '2000-01-01'): SearchFilter(
-                propertypath_set=frozenset([
-                    (DCTERMS.created,),
-                    (DCTERMS.modified,),
-                ]),
-                value_set=frozenset(['2000-01-01']),
+            ("foo[dateCreated,dateModified][after]", "2000-01-01"): SearchFilter(
+                propertypath_set=frozenset(
+                    [
+                        (DCTERMS.created,),
+                        (DCTERMS.modified,),
+                    ]
+                ),
+                value_set=frozenset(["2000-01-01"]),
                 operator=SearchFilter.FilterOperator.AFTER,
             ),
-            ('foo[dateModified,isPartOf.dateModified][after]', '2000-01-01'): SearchFilter(
-                propertypath_set=frozenset([
-                    (DCTERMS.modified,),
-                    (DCTERMS.isPartOf, DCTERMS.modified,),
-                ]),
-                value_set=frozenset(['2000-01-01']),
+            (
+                "foo[dateModified,isPartOf.dateModified][after]",
+                "2000-01-01",
+            ): SearchFilter(
+                propertypath_set=frozenset(
+                    [
+                        (DCTERMS.modified,),
+                        (
+                            DCTERMS.isPartOf,
+                            DCTERMS.modified,
+                        ),
+                    ]
+                ),
+                value_set=frozenset(["2000-01-01"]),
                 operator=SearchFilter.FilterOperator.AFTER,
             ),
-            ('foo[dateWithdrawn][before]', '2000-01-01'): SearchFilter(
+            ("foo[dateWithdrawn][before]", "2000-01-01"): SearchFilter(
                 propertypath_set=frozenset([(OSFMAP.dateWithdrawn,)]),
-                value_set=frozenset(['2000-01-01']),
+                value_set=frozenset(["2000-01-01"]),
                 operator=SearchFilter.FilterOperator.BEFORE,
             ),
-            ('foo[creator][is-present]', ''): SearchFilter(
+            ("foo[creator][is-present]", ""): SearchFilter(
                 propertypath_set=frozenset([(DCTERMS.creator,)]),
                 value_set=frozenset(),
                 operator=SearchFilter.FilterOperator.IS_PRESENT,
             ),
-            ('foo[creator.creator.creator][is-absent]', 'nothing'): SearchFilter(
-                propertypath_set=frozenset([(DCTERMS.creator, DCTERMS.creator, DCTERMS.creator,)]),
+            ("foo[creator.creator.creator][is-absent]", "nothing"): SearchFilter(
+                propertypath_set=frozenset(
+                    [
+                        (
+                            DCTERMS.creator,
+                            DCTERMS.creator,
+                            DCTERMS.creator,
+                        )
+                    ]
+                ),
                 value_set=frozenset(),
                 operator=SearchFilter.FilterOperator.IS_ABSENT,
             ),
-            ('foo[creator,creator,creator][is-absent]', 'nothing'): SearchFilter(
+            ("foo[creator,creator,creator][is-absent]", "nothing"): SearchFilter(
                 propertypath_set=frozenset([(DCTERMS.creator,)]),
                 value_set=frozenset(),
                 operator=SearchFilter.FilterOperator.IS_ABSENT,
             ),
-            ('foo[affiliation,isPartOf.affiliation,isContainedBy.affiliation]', 'http://foo.example/'): SearchFilter(
-                propertypath_set=frozenset([
-                    (OSFMAP.isContainedBy, OSFMAP.affiliation,),
-                    (DCTERMS.isPartOf, OSFMAP.affiliation,),
-                    (OSFMAP.affiliation,),
-                ]),
-                value_set=frozenset(['http://foo.example/']),
+            (
+                "foo[affiliation,isPartOf.affiliation,isContainedBy.affiliation]",
+                "http://foo.example/",
+            ): SearchFilter(
+                propertypath_set=frozenset(
+                    [
+                        (
+                            OSFMAP.isContainedBy,
+                            OSFMAP.affiliation,
+                        ),
+                        (
+                            DCTERMS.isPartOf,
+                            OSFMAP.affiliation,
+                        ),
+                        (OSFMAP.affiliation,),
+                    ]
+                ),
+                value_set=frozenset(["http://foo.example/"]),
                 operator=SearchFilter.FilterOperator.ANY_OF,
             ),
         }

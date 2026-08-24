@@ -1,5 +1,5 @@
-"""shtrove.derive.types: interface for deriving a specific representation of a metadata record
-"""
+"""shtrove.derive.types: interface for deriving a specific representation of a metadata record"""
+
 import typing
 
 from primitive_metadata import primitive_rdf as rdf
@@ -8,7 +8,9 @@ from shtrove.persist.types import ProtoCombinedMetadata
 
 
 class ProtoDerive(typing.Protocol):
-    def derive(self, upstream_metadata: cabc.Iterable[ProtoCombinedMetadata]) -> ProtoDerivedMetadatum: ...
+    def derive(
+        self, upstream_metadata: cabc.Iterable[ProtoCombinedMetadata]
+    ) -> ProtoDerivedMetadatum: ...
 
 
 class ProtoDerivedMetadatum(typing.Protocol):

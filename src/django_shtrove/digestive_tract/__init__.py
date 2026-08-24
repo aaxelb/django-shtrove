@@ -1,4 +1,4 @@
-""" functions for ingesting/processing metadata records
+"""functions for ingesting/processing metadata records
 
 TODO:
 

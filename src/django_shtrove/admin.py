@@ -22,6 +22,7 @@ and search-indexes admin view:
     - share/templates/admin/search-indexes.html
     - linked from nav-global block in share/templates/admin/base_site.html
 """
+
 from django.contrib import admin
 
 # Register your models here.

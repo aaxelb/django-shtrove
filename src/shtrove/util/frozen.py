@@ -12,7 +12,7 @@ _FROZEN_TYPES = (
 
 
 def freeze(obj: Any) -> Any:
-    '''
+    """
     >>> freeze([1, 1, 2])
     (1, 1, 2)
     >>> freeze({3})
@@ -25,7 +25,7 @@ def freeze(obj: Any) -> Any:
     Traceback (most recent call last):
       ...
     ValueError: how freeze <object object at 0x...>?
-    '''
+    """
     if isinstance(obj, set):
         return frozenset(obj)  # use hashability to approximate immutability
     if isinstance(obj, (list, tuple)):
@@ -34,7 +34,7 @@ def freeze(obj: Any) -> Any:
         return freeze_mapping(obj)
     if isinstance(obj, _FROZEN_TYPES):
         return obj
-    raise ValueError(f'how freeze {obj!r}?')
+    raise ValueError(f"how freeze {obj!r}?")
 
 
 def freeze_mapping[K, V](_map: Mapping[K, V]) -> Mapping[K, V]:

@@ -13,7 +13,8 @@ from shtrove.util.frozen import freeze
 from shtrove.util.propertypath import (
     PropertypathSet,
     Propertypath,
-    parse_propertypath, GLOB_PATHSTEP,
+    parse_propertypath,
+    GLOB_PATHSTEP,
 )
 from shtrove.util import queryparams as _qp
 from shtrove.vocab.namespaces import namespaces_shorthand
@@ -46,11 +47,13 @@ class BasicTroveParams:
         # subclasses should override and add their fields to super().parse_queryparams(queryparams)
         _shorthand = cls._gather_shorthand(queryparams)
         return {
-            'iri_shorthand': _shorthand,
-            'included_relations': cls._gather_included_relations(queryparams, _shorthand),
-            'attrpaths_by_type': cls._gather_attrpaths(queryparams, _shorthand),
-            'accept_mediatype': _qp.get_single_value(queryparams, 'acceptMediatype'),
-            'blend_cards': _qp.get_bool_value(queryparams, 'blendCards'),
+            "iri_shorthand": _shorthand,
+            "included_relations": cls._gather_included_relations(
+                queryparams, _shorthand
+            ),
+            "attrpaths_by_type": cls._gather_attrpaths(queryparams, _shorthand),
+            "accept_mediatype": _qp.get_single_value(queryparams, "acceptMediatype"),
+            "blend_cards": _qp.get_bool_value(queryparams, "blendCards"),
         }
 
     @classmethod
@@ -68,7 +71,7 @@ class BasicTroveParams:
     @classmethod
     def _gather_shorthand(cls, queryparams: _qp.QueryparamDict) -> rdf.IriShorthand:
         _prefixmap = {}
-        for _qp_name, _iri in queryparams.get('iriShorthand', []):
+        for _qp_name, _iri in queryparams.get("iriShorthand", []):
             try:
                 (_shortname,) = _qp_name.bracketed_names
             except ValueError:
@@ -85,13 +88,15 @@ class BasicTroveParams:
         queryparams: _qp.QueryparamDict,
         shorthand: rdf.IriShorthand,
     ) -> PropertypathSet:
-        _include_params = queryparams.get('include', [])
+        _include_params = queryparams.get("include", [])
         if _include_params:
-            return frozenset((
-                parse_propertypath(_path_value, shorthand)
-                for _, _include_value in _include_params
-                for _path_value in _qp.split_queryparam_value(_include_value)
-            ))
+            return frozenset(
+                (
+                    parse_propertypath(_path_value, shorthand)
+                    for _, _include_value in _include_params
+                    for _path_value in _qp.split_queryparam_value(_include_value)
+                )
+            )
         return cls._default_include()
 
     @classmethod
@@ -106,12 +111,14 @@ class BasicTroveParams:
         _attrpaths: SimpleChainMap[str, tuple[Propertypath, ...]] = SimpleChainMap(
             [cls._default_attrpaths()],
         )
-        _fields_params = queryparams.get('fields', [])
+        _fields_params = queryparams.get("fields", [])
         if _fields_params:
             _requested: dict[str, list[Propertypath]] = defaultdict(list)
             for _param_name, _param_value in _fields_params:
                 if _param_name.bracketed_names:  # e.g. "fields[TYPE1,TYPE2,TYPE3]=..."
-                    _typenames = _qp.split_queryparam_value(_param_name.bracketed_names[0])
+                    _typenames = _qp.split_queryparam_value(
+                        _param_name.bracketed_names[0]
+                    )
                 else:  # omitted brackets equivalent to "fields[*]" (apply to any type)
                     _typenames = [GLOB_PATHSTEP]
                 for _typename in _typenames:
@@ -136,8 +143,8 @@ class BasicTroveParams:
         # subclasses should override and add their fields to super().to_queryparams()
         _queryparams = []
         if self.accept_mediatype:
-            _queryparams.append(('acceptMediatype', self.accept_mediatype))
+            _queryparams.append(("acceptMediatype", self.accept_mediatype))
         if self.blend_cards:
-            _queryparams.append(('blendCards', ''))
+            _queryparams.append(("blendCards", ""))
         # TODO: iriShorthand, include, fields[...]
         return _queryparams

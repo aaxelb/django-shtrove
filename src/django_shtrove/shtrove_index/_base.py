@@ -23,13 +23,12 @@ from trove.trovesearch.search_handle import (
 )
 from . import _indexnames as indexnames
 
-
 logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass(frozen=True)
 class IndexStrategy(abc.ABC):
-    '''an abstraction for indexes in different places and ways.
+    """an abstraction for indexes in different places and ways.
 
     (NOTE: this was copied from SHARE -- worth reconsidering details)
 
@@ -45,16 +44,21 @@ class IndexStrategy(abc.ABC):
     * encapsulates all interaction with a particular type of search-engine cluster
     * may know of version- or cluster-specific features
       (should include identifiers like version numbers in subclass name)
-    '''
-    CURRENT_STRATEGY_CHECKSUM: typing.ClassVar[ChecksumIri]  # set on subclasses to protect against accidents
+    """
+
+    CURRENT_STRATEGY_CHECKSUM: typing.ClassVar[
+        ChecksumIri
+    ]  # set on subclasses to protect against accidents
 
     strategy_name: str
-    strategy_check: str = ''  # if unspecified, uses current checksum
+    strategy_check: str = ""  # if unspecified, uses current checksum
 
     def __post_init__(self):
         indexnames.raise_if_invalid_indexname_part(self.strategy_name)
         if not self.strategy_check:
-            object.__setattr__(self, 'strategy_check', self.CURRENT_STRATEGY_CHECKSUM.hexdigest)
+            object.__setattr__(
+                self, "strategy_check", self.CURRENT_STRATEGY_CHECKSUM.hexdigest
+            )
         indexnames.raise_if_invalid_indexname_part(self.strategy_check)
 
     @classmethod
@@ -68,11 +72,11 @@ class IndexStrategy(abc.ABC):
 
     @property
     def nonurgent_messagequeue_name(self) -> str:
-        return f'{self.strategy_name}.nonurgent'
+        return f"{self.strategy_name}.nonurgent"
 
     @property
     def urgent_messagequeue_name(self) -> str:
-        return f'{self.strategy_name}.urgent'
+        return f"{self.strategy_name}.urgent"
 
     @property
     def indexname_prefix_parts(self) -> list[str]:
@@ -84,7 +88,7 @@ class IndexStrategy(abc.ABC):
 
     @property
     def indexname_wildcard(self) -> str:
-        return f'{self.indexname_prefix}*'
+        return f"{self.indexname_prefix}*"
 
     @property
     def is_current(self) -> bool:
@@ -92,12 +96,14 @@ class IndexStrategy(abc.ABC):
 
     def assert_message_type(self, message_type: messages.MessageType):
         if message_type not in self.supported_message_types:
-            raise IndexStrategyError(f'Invalid message_type "{message_type}" (expected {self.supported_message_types})')
+            raise IndexStrategyError(
+                f'Invalid message_type "{message_type}" (expected {self.supported_message_types})'
+            )
 
     def assert_strategy_is_current(self):
         actual_checksum = self.compute_strategy_checksum()
         if actual_checksum != self.CURRENT_STRATEGY_CHECKSUM:
-            raise IndexStrategyError(f'''
+            raise IndexStrategyError(f"""
 Unconfirmed changes in {self.__class__.__qualname__}!
 
 If you made these changes on purpose, pls update {self.__class__.__qualname__} with:
@@ -107,7 +113,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         salt='{actual_checksum.salt}',
         hexdigest='{actual_checksum.hexdigest}',
     )
-```''')
+```""")
 
     def get_index(self, subname: str) -> SpecificIndex:
         return self.SpecificIndex(self, subname)  # type: ignore[abstract]
@@ -115,25 +121,31 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     def parse_full_index_name(self, index_name: str) -> SpecificIndex:
         _parts = indexnames.parse_indexname_parts(index_name)
         try:
-            (_strategy_name, _strategy_check, *_etc) = _parts
+            _strategy_name, _strategy_check, *_etc = _parts
         except ValueError:
-            raise IndexStrategyError(f'expected "strategyname__strategycheck", at least (got "{index_name}")')
+            raise IndexStrategyError(
+                f'expected "strategyname__strategycheck", at least (got "{index_name}")'
+            )
         if _strategy_name != self.strategy_name:
-            raise IndexStrategyError(f'this index belongs to another strategy (expected strategy name "{self.strategy_name}"; got "{_strategy_name}" from index name {index_name})')
+            raise IndexStrategyError(
+                f'this index belongs to another strategy (expected strategy name "{self.strategy_name}"; got "{_strategy_name}" from index name {index_name})'
+            )
         _strategy = self.with_strategy_check(_strategy_check)
-        return _strategy.get_index(_etc[0] if _etc else '')
+        return _strategy.get_index(_etc[0] if _etc else "")
 
     def with_strategy_check(self, strategy_check: str) -> typing.Self:
         return dataclasses.replace(self, strategy_check=strategy_check)
 
     def pls_setup(self, *, skip_backfill=False) -> None:
         if not self.is_current:
-            raise IndexStrategyError('cannot setup a non-current strategy')
+            raise IndexStrategyError("cannot setup a non-current strategy")
         for _index in self.each_subnamed_index():
             _index.pls_create()
             _index.pls_start_keeping_live()
         _backfill = self.get_or_create_backfill()
-        _backfill.backfill_status = (_backfill.COMPLETE if skip_backfill else _backfill.INITIAL)
+        _backfill.backfill_status = (
+            _backfill.COMPLETE if skip_backfill else _backfill.INITIAL
+        )
         _backfill.save()
 
     def pls_teardown(self) -> None:
@@ -141,7 +153,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
             _index.pls_delete()
 
     def get_or_create_backfill(self):
-        (index_backfill, _) = IndexBackfill.objects.get_or_create(
+        index_backfill, _ = IndexBackfill.objects.get_or_create(
             index_strategy_name=self.strategy_name,
         )
         return index_backfill
@@ -154,10 +166,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         self.pls_refresh()  # explicit refresh after backfill
 
     def pls_check_exists(self) -> bool:
-        return all(
-            _index.pls_check_exists()
-            for _index in self.each_subnamed_index()
-        )
+        return all(_index.pls_check_exists() for _index in self.each_subnamed_index())
 
     def pls_refresh(self) -> None:
         for _index in self.each_subnamed_index():
@@ -176,8 +185,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         _prior_strategy_statuses: list[StrategyStatus] = []
         if self.is_current:
             _index_statuses = [
-                _index.pls_get_status()
-                for _index in self.each_subnamed_index()
+                _index.pls_get_status() for _index in self.each_subnamed_index()
             ]
             _prior_strategies = {
                 _index.index_strategy
@@ -185,13 +193,11 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
                 if not _index.index_strategy.is_current
             }
             _prior_strategy_statuses = [
-                _strategy.pls_get_strategy_status()
-                for _strategy in _prior_strategies
+                _strategy.pls_get_strategy_status() for _strategy in _prior_strategies
             ]
         else:
             _index_statuses = [
-                _index.pls_get_status()
-                for _index in self.each_existing_index()
+                _index.pls_get_status() for _index in self.each_existing_index()
             ]
         return StrategyStatus(
             strategy_name=self.strategy_name,
@@ -208,10 +214,10 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     @classmethod
     @abc.abstractmethod
     def compute_strategy_checksum(self) -> ChecksumIri:
-        '''get a dict (json-serializable and thereby checksummable) of all
+        """get a dict (json-serializable and thereby checksummable) of all
         configuration held still by this IndexStrategy subclass -- changes
         in the checksum may result in new indices being created and filled
-        '''
+        """
         raise NotImplementedError
 
     @classmethod
@@ -230,15 +236,21 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         raise NotImplementedError
 
     @abc.abstractmethod
-    def each_existing_index(self, *, any_strategy_check: bool = False) -> typing.Iterator[SpecificIndex]:
+    def each_existing_index(
+        self, *, any_strategy_check: bool = False
+    ) -> typing.Iterator[SpecificIndex]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def each_live_index(self, *, any_strategy_check: bool = False) -> typing.Iterator[SpecificIndex]:
+    def each_live_index(
+        self, *, any_strategy_check: bool = False
+    ) -> typing.Iterator[SpecificIndex]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def pls_handle_messages_chunk(self, messages_chunk: messages.MessagesChunk) -> typing.Iterable[messages.IndexMessageResponse]:
+    def pls_handle_messages_chunk(
+        self, messages_chunk: messages.MessagesChunk
+    ) -> typing.Iterable[messages.IndexMessageResponse]:
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -252,14 +264,22 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     ###
     # optional implementations
 
-    def pls_handle_cardsearch(self, cardsearch_params: CardsearchParams) -> CardsearchHandle:
+    def pls_handle_cardsearch(
+        self, cardsearch_params: CardsearchParams
+    ) -> CardsearchHandle:
         raise NotImplementedError
 
-    def pls_handle_valuesearch(self, valuesearch_params: ValuesearchParams) -> ValuesearchHandle:
+    def pls_handle_valuesearch(
+        self, valuesearch_params: ValuesearchParams
+    ) -> ValuesearchHandle:
         raise NotImplementedError
 
-    def pls_handle_search__passthru(self, request_body=None, request_queryparams=None) -> dict:
-        raise NotImplementedError(f'{self.__class__.__name__} does not implement pls_handle_search__passthru (either implement it or don\'t use this strategy for that)')
+    def pls_handle_search__passthru(
+        self, request_body=None, request_queryparams=None
+    ) -> dict:
+        raise NotImplementedError(
+            f"{self.__class__.__name__} does not implement pls_handle_search__passthru (either implement it or don't use this strategy for that)"
+        )
 
     # IndexStrategy.SpecificIndex must be implemented by subclasses
     # in their own `class SpecificIndex(IndexStrategy.SpecificIndex)`
@@ -317,4 +337,3 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         # TODO someday:
         # def pls_handle_propertysearch(self, propertysearch_params: PropertysearchParams) -> PropertysearchResponse:
         #     raise NotImplementedError
-

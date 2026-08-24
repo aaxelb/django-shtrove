@@ -10,12 +10,11 @@ from trove import models as trove_db
 from trove import digestive_tract
 from trove.vocab.namespaces import BLARG
 
-
 __all__ = (
-    'create_indexcard',
-    'create_supplement',
-    'index_indexcards',
-    'update_indexcard_content',
+    "create_indexcard",
+    "create_supplement",
+    "index_indexcards",
+    "update_indexcard_content",
 )
 
 
@@ -72,6 +71,7 @@ def create_supplement(
 
 def index_indexcards(index_strategy, indexcards):
     from share.search import messages
+
     _messages_chunk = messages.MessagesChunk(
         messages.MessageType.UPDATE_INDEXCARD,
         [_indexcard.id for _indexcard in indexcards],

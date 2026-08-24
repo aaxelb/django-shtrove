@@ -1,5 +1,5 @@
-"""shtrove.render.types: interface for rendering shtrove api responses
-"""
+"""shtrove.render.types: interface for rendering shtrove api responses"""
+
 import enum
 import typing
 
@@ -10,7 +10,9 @@ class ProtoRender(typing.Protocol):
     @classmethod
     def mediatype(self) -> str: ...
 
-    def render_response(self, focus: gather.Focus, gathering: gather.Gathering) -> ProtoRendering: ...
+    def render_response(
+        self, focus: gather.Focus, gathering: gather.Gathering
+    ) -> ProtoRendering: ...
 
 
 class RenderingFlags(enum.Flags):

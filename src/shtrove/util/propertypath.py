@@ -6,7 +6,6 @@ from primitive_metadata import primitive_rdf as rdf
 from shtrove import exceptions as shtrove_exceptions
 from shtrove.util.queryparams import split_queryparam_value
 
-
 ###
 # type aliases
 Propertypath = tuple[str, ...]
@@ -16,34 +15,34 @@ PropertypathSet = frozenset[Propertypath]
 # constants
 
 # between each step in a property path "foo.bar.baz"
-PROPERTYPATH_DELIMITER = '.'
+PROPERTYPATH_DELIMITER = "."
 
 # special path-step that matches any property
-GLOB_PATHSTEP = '*'
+GLOB_PATHSTEP = "*"
 ONE_GLOB_PROPERTYPATH: Propertypath = (GLOB_PATHSTEP,)
 
 
 def is_globpath(path: Propertypath) -> bool:
-    '''
+    """
     >>> is_globpath(('*',))
     True
     >>> is_globpath(('*', '*'))
     True
     >>> is_globpath(('*', 'url:url'))
     False
-    '''
+    """
     return all(_pathstep == GLOB_PATHSTEP for _pathstep in path)
 
 
 def make_globpath(length: int) -> Propertypath:
-    '''
+    """
     >>> make_globpath(1)
     ('*',)
     >>> make_globpath(2)
     ('*', '*')
     >>> make_globpath(5)
     ('*', '*', '*', '*', '*')
-    '''
+    """
     return ONE_GLOB_PROPERTYPATH * length
 
 
@@ -59,11 +58,13 @@ def parse_propertypath(
     )
     if GLOB_PATHSTEP in _path:
         if not allow_globs:
-            raise shtrove_exceptions.InvalidPropertyPath(serialized_path, 'no * allowed')
+            raise shtrove_exceptions.InvalidPropertyPath(
+                serialized_path, "no * allowed"
+            )
         if any(_pathstep != GLOB_PATHSTEP for _pathstep in _path):
             raise shtrove_exceptions.InvalidPropertyPath(
                 serialized_path,
-                f'path must be all * or no * (got {serialized_path})',
+                f"path must be all * or no * (got {serialized_path})",
             )
     return _path
 
@@ -93,13 +94,12 @@ def propertypath_key(
     shorthand: rdf.IriShorthand,
 ) -> str:
     return PROPERTYPATH_DELIMITER.join(
-        propertypathstep_key(_pathstep, shorthand)
-        for _pathstep in path
+        propertypathstep_key(_pathstep, shorthand) for _pathstep in path
     )
 
 
 def each_subpath(path: Propertypath) -> collections.abc.Iterator[Propertypath]:
-    '''
+    """
     >>> list(each_subpath(('a', 'b', 'c', 'd', 'e')))
     [('a',),
     ('a', 'b'),
@@ -108,7 +108,7 @@ def each_subpath(path: Propertypath) -> collections.abc.Iterator[Propertypath]:
     ('a', 'b', 'c', 'd', 'e')]
     >>> list(each_subpath(()))
     []
-    '''
+    """
     for _subpath_len in range(1, len(path) + 1):
         _subpath = path[:_subpath_len]
         if _subpath:

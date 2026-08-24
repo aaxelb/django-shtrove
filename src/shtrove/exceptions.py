@@ -5,7 +5,7 @@ import inspect
 class TroveError(Exception):
     # set more helpful codes in subclasses
     http_status: int = http.HTTPStatus.INTERNAL_SERVER_ERROR
-    error_location: str = ''
+    error_location: str = ""
 
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
@@ -14,16 +14,18 @@ class TroveError(Exception):
     def _get_nearest_code_location(self) -> str:
         try:
             _raise_frame = next(
-                _frameinfo for _frameinfo in inspect.stack()
+                _frameinfo
+                for _frameinfo in inspect.stack()
                 if _frameinfo.filename != __file__  # nearest frame not in this file
             )
-            return f'{_raise_frame.filename}::{_raise_frame.lineno}'
+            return f"{_raise_frame.filename}::{_raise_frame.lineno}"
         except Exception:
-            return 'unknown'  # eh, whatever
+            return "unknown"  # eh, whatever
 
 
 ###
 # digesting metadata
+
 
 class DigestiveError(TroveError):
     pass
@@ -47,6 +49,7 @@ class CannotDigestExpiredDatum(DigestiveError):
 
 ###
 # parsing a request
+
 
 class RequestParsingError(TroveError):
     http_status = http.HTTPStatus.BAD_REQUEST
@@ -99,6 +102,7 @@ class InvalidSort(RequestParsingError):
 ###
 # rendering a response
 
+
 class ResponseRenderingError(TroveError):
     pass
 
@@ -113,6 +117,7 @@ class CannotRenderStreamTwice(ResponseRenderingError):
 
 ###
 # primitive rdf
+
 
 class PrimitiveRdfWhoopsy(TroveError):
     pass

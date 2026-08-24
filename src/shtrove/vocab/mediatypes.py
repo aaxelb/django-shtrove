@@ -1,27 +1,27 @@
-JSON = 'application/json'
-JSONAPI = 'application/vnd.api+json'
-JSONLD = 'application/ld+json'
-TURTLE = 'text/turtle'
-HTML = 'text/html'
-TSV = 'text/tab-separated-values'
-CSV = 'text/csv'
-RSS = 'application/rss+xml'
-ATOM = 'application/atom+xml'
+JSON = "application/json"
+JSONAPI = "application/vnd.api+json"
+JSONLD = "application/ld+json"
+TURTLE = "text/turtle"
+HTML = "text/html"
+TSV = "text/tab-separated-values"
+CSV = "text/csv"
+RSS = "application/rss+xml"
+ATOM = "application/atom+xml"
 
 
 _file_extensions = {
-    JSON: '.json',
-    JSONAPI: '.json',
-    JSONLD: '.json',
-    TURTLE: '.turtle',
-    HTML: '.html',
-    TSV: '.tsv',
-    CSV: '.csv',
-    RSS: '.xml',
-    ATOM: '.xml',
+    JSON: ".json",
+    JSONAPI: ".json",
+    JSONLD: ".json",
+    TURTLE: ".turtle",
+    HTML: ".html",
+    TSV: ".tsv",
+    CSV: ".csv",
+    RSS: ".xml",
+    ATOM: ".xml",
 }
 
-_PARAMETER_DELIMITER = ';'
+_PARAMETER_DELIMITER = ";"
 
 
 def strip_mediatype_parameters(mediatype: str) -> str:
@@ -36,7 +36,7 @@ def strip_mediatype_parameters(mediatype: str) -> str:
     >>> strip_mediatype_parameters('application/whatever ; blarg=foo')
     'application/whatever'
     """
-    (_base, _, __) = mediatype.partition(_PARAMETER_DELIMITER)
+    _base, _, __ = mediatype.partition(_PARAMETER_DELIMITER)
     return _base.strip()
 
 
@@ -44,4 +44,4 @@ def dot_extension(mediatype: str) -> str:
     try:
         return _file_extensions[strip_mediatype_parameters(mediatype)]
     except KeyError:
-        raise ValueError(f'unrecognized mediatype: {mediatype}')
+        raise ValueError(f"unrecognized mediatype: {mediatype}")

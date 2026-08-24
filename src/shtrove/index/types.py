@@ -1,5 +1,5 @@
-"""shtrove.index.types: interface for indexing metadata records for easy searching
-"""
+"""shtrove.index.types: interface for indexing metadata records for easy searching"""
+
 import collections.abc as cabc
 import typing
 
@@ -22,23 +22,27 @@ class ProtoIndex(typing.Protocol):
 
     ###
     # searching
-    def handle_recordsearch(self, recordsearch_args: ProtoRecordsearchArgs) -> ProtoRecordsearchHandle: ...
-    def handle_valuesearch(self, valuesearch_args: ProtoValuesearchArgs) -> ProtoValuesearchHandle: ...
+    def handle_recordsearch(
+        self, recordsearch_args: ProtoRecordsearchArgs
+    ) -> ProtoRecordsearchHandle: ...
+    def handle_valuesearch(
+        self, valuesearch_args: ProtoValuesearchArgs
+    ) -> ProtoValuesearchHandle: ...
 
 
 ###
 # search args
 
-class ProtoRecordsearchArgs(typing.Protocol):
-    ...  # TODO
+
+class ProtoRecordsearchArgs(typing.Protocol): ...  # TODO
 
 
-class ProtoValuesearchArgs(typing.Protocol):
-    ...  # TODO
+class ProtoValuesearchArgs(typing.Protocol): ...  # TODO
 
 
 ###
 # search response handles
+
 
 class ProtoResponseHandle(typing.Protocol):
     cursor: ProtoPageCursor
@@ -52,7 +56,6 @@ class ProtoRecordsearchHandle(ProtoResponseHandle, typing.Protocol):
     total_match_count: rdf.Literal
     match_sample: cabc.Iterable[ProtoRecordsearchMatch]
     suggested_paths: cabc.Iterable[PropertypathUsage]
-
 
 
 class ProtoValuesearchHandle(ProtoResponseHandle, typing.Protocol):

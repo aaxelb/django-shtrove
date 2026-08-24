@@ -6,7 +6,6 @@ from collections.abc import (
 )
 import datetime
 
-
 ###
 # types for json-serializable stuff
 
@@ -20,7 +19,7 @@ type JsonObject = dict[str, JsonValue]
 
 type JsonPath = Sequence[str]  # path of json keys
 
-JSONLD_VALUE_KEYS = ('@value', '@id')
+JSONLD_VALUE_KEYS = ("@value", "@id")
 
 ###
 # utils for navigating nested json in the style of trove.derive.osfmap_json
@@ -29,7 +28,7 @@ JSONLD_VALUE_KEYS = ('@value', '@id')
 
 def json_vals(json_obj: JsonObject, path: JsonPath) -> Generator[JsonValue]:
     assert path
-    (_step, *_rest) = path
+    _step, *_rest = path
     try:
         _val = json_obj[_step]
     except KeyError:
@@ -68,7 +67,8 @@ def json_prims(
                 yield next(
                     _val
                     for _key in value_key_options
-                    if _key in json_val and isinstance(_val := json_val[_key], JsonPrimitive)
+                    if _key in json_val
+                    and isinstance(_val := json_val[_key], JsonPrimitive)
                 )
             except StopIteration:
                 pass

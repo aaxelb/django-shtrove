@@ -7,26 +7,25 @@ import urllib.parse
 
 from shtrove import exceptions as shtrove_exceptions
 
-
 ###
 # jsonapi query parameter parsing:
 # https://jsonapi.org/format/#query-parameters
 QUERYPARAM_FAMILY_REGEX = re.compile(
-    r'^[a-zA-Z0-9]'     # initial alphanumeric,
-    r'[-_a-zA-Z0-9]*'   # - and _ ok from then,
-    r'(?=\[|$)'         # followed by [ or end.
+    r"^[a-zA-Z0-9]"  # initial alphanumeric,
+    r"[-_a-zA-Z0-9]*"  # - and _ ok from then,
+    r"(?=\[|$)"  # followed by [ or end.
 )
 QUERYPARAM_FAMILYMEMBER_REGEX = re.compile(
-    r'\['                   # start with open square-bracket,
-    r'(?P<name>[^[\]]*)'    # anything not square-bracket (note: less strict than jsonapi)
-    r'\]'                   # end with close-bracket
+    r"\["  # start with open square-bracket,
+    r"(?P<name>[^[\]]*)"  # anything not square-bracket (note: less strict than jsonapi)
+    r"\]"  # end with close-bracket
 )
 # is common (but not required) for a query parameter
 # value to be split on commas, used as a list or set
-QUERYPARAM_VALUES_DELIM = ','
+QUERYPARAM_VALUES_DELIM = ","
 
-TRUTHY_VALUES = frozenset(('t', 'true', '1', 'y', 'yes'))
-FALSY_VALUES = frozenset(('f', 'false', '0', 'n', 'no'))
+TRUTHY_VALUES = frozenset(("t", "true", "1", "y", "yes"))
+FALSY_VALUES = frozenset(("f", "false", "0", "n", "no"))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -43,23 +42,24 @@ class QueryparamName:
         next_position = family_match.end()
         bracketed_names = []
         while next_position < len(queryparam_name):
-            bracketed_match = QUERYPARAM_FAMILYMEMBER_REGEX.match(queryparam_name, next_position)
+            bracketed_match = QUERYPARAM_FAMILYMEMBER_REGEX.match(
+                queryparam_name, next_position
+            )
             if not bracketed_match:
                 raise shtrove_exceptions.InvalidQueryParamName(queryparam_name)
-            bracketed_names.append(bracketed_match.group('name') or '')
+            bracketed_names.append(bracketed_match.group("name") or "")
             next_position = bracketed_match.end()
         if next_position != len(queryparam_name):
             raise shtrove_exceptions.InvalidQueryParamName(queryparam_name)
         return cls(family, tuple(bracketed_names))
 
     def __str__(self) -> str:
-        return ''.join((
-            self.family,
-            *(
-                f'[{bracketed_name}]'
-                for bracketed_name in self.bracketed_names
-            ),
-        ))
+        return "".join(
+            (
+                self.family,
+                *(f"[{bracketed_name}]" for bracketed_name in self.bracketed_names),
+            )
+        )
 
 
 QueryparamDict = dict[
@@ -137,7 +137,7 @@ def parse_booly_str(
 ) -> bool:
     if value is None:
         return if_absent
-    if value == '':
+    if value == "":
         return if_empty
     _lowered = value.lower()
     if _lowered in TRUTHY_VALUES:

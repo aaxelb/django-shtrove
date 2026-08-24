@@ -4,21 +4,22 @@ import urllib.parse as _urp
 
 from shtrove import exceptions as shtrove_exceptions
 
-
 # quoth <https://www.rfc-editor.org/rfc/rfc3987.html#section-2.2>:
 #   scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
 IRI_SCHEME_REGEX = re.compile(
-    r'[a-z]'            # one letter from the english alphabet
-    r'[a-z0-9+-.]*'     # zero or more letters, decimal numerals, or the symbols `+`, `-`, or `.`
+    r"[a-z]"  # one letter from the english alphabet
+    r"[a-z0-9+-.]*"  # zero or more letters, decimal numerals, or the symbols `+`, `-`, or `.`
 )
 IRI_SCHEME_REGEX_IGNORECASE = re.compile(IRI_SCHEME_REGEX.pattern, flags=re.IGNORECASE)
-COLON = ':'
-COLON_SLASH_SLASH = '://'
+COLON = ":"
+COLON_SLASH_SLASH = "://"
 QUOTED_IRI_REGEX = re.compile(
-    f'{IRI_SCHEME_REGEX.pattern}{re.escape(_urp.quote(COLON))}'
-    f'|{re.escape(_urp.quote(COLON_SLASH_SLASH))}'
+    f"{IRI_SCHEME_REGEX.pattern}{re.escape(_urp.quote(COLON))}"
+    f"|{re.escape(_urp.quote(COLON_SLASH_SLASH))}"
 )
-UNQUOTED_IRI_REGEX = re.compile(f'{IRI_SCHEME_REGEX.pattern}{COLON}|{COLON_SLASH_SLASH}')
+UNQUOTED_IRI_REGEX = re.compile(
+    f"{IRI_SCHEME_REGEX.pattern}{COLON}|{COLON_SLASH_SLASH}"
+)
 
 # treat similar-enough IRIs as equivalent, based on a wild assertion:
 #   if two IRIs differ only in their `scheme`
@@ -29,29 +30,29 @@ UNQUOTED_IRI_REGEX = re.compile(f'{IRI_SCHEME_REGEX.pattern}{COLON}|{COLON_SLASH
 
 
 def get_sufficiently_unique_iri(iri: str) -> str:
-    '''
+    """
     >>> get_sufficiently_unique_iri('flipl://iri.example/blarg/?#')
     '://iri.example/blarg'
     >>> get_sufficiently_unique_iri('namly:urn.example:blerg')
     'namly:urn.example:blerg'
-    '''
-    (_suffuniq_iri, _) = get_sufficiently_unique_iri_and_scheme(iri)
+    """
+    _suffuniq_iri, _ = get_sufficiently_unique_iri_and_scheme(iri)
     return _suffuniq_iri
 
 
 def get_iri_scheme(iri: str) -> str:
-    '''
+    """
     >>> get_iri_scheme('flipl://iri.example/blarg/?#')
     'flipl'
     >>> get_iri_scheme('namly:urn.example:blerg')
     'namly'
-    '''
-    (_, _iri_scheme) = get_sufficiently_unique_iri_and_scheme(iri)
+    """
+    _, _iri_scheme = get_sufficiently_unique_iri_and_scheme(iri)
     return _iri_scheme
 
 
 def iris_sufficiently_equal(*iris: str) -> bool:
-    '''
+    """
     >>> iris_sufficiently_equal(
     ...  'flipl://iri.example/blarg/blerg/?#',
     ...  'http://iri.example/blarg/blerg',
@@ -74,61 +75,68 @@ def iris_sufficiently_equal(*iris: str) -> bool:
     ...  'nimly:urn.example:blerg',
     ... )
     False
-    '''
+    """
     _suffuniq_iris = set(map(get_sufficiently_unique_iri, iris))
     return len(_suffuniq_iris) == 1
 
 
 def get_sufficiently_unique_iri_and_scheme(iri: str) -> tuple[str, str]:
-    '''
+    """
     >>> get_sufficiently_unique_iri_and_scheme('flipl://iri.example/blarg/?#')
     ('://iri.example/blarg', 'flipl')
     >>> get_sufficiently_unique_iri_and_scheme('namly:urn.example:blerg')
     ('namly:urn.example:blerg', 'namly')
-    '''
+    """
     _scheme_match = IRI_SCHEME_REGEX_IGNORECASE.match(iri)
     if _scheme_match:
         _scheme = _scheme_match.group().lower()
-        _remainder = iri[_scheme_match.end():]
+        _remainder = iri[_scheme_match.end() :]
         if not _remainder.startswith(COLON):
-            raise shtrove_exceptions.IriInvalid(f'does not look like an iri (got "{iri}")')
+            raise shtrove_exceptions.IriInvalid(
+                f'does not look like an iri (got "{iri}")'
+            )
         if not _remainder.startswith(COLON_SLASH_SLASH):
             # for an iri without '://', assume nothing!
             return (iri, _scheme)
     else:  # may omit scheme only if `://`
         if not iri.startswith(COLON_SLASH_SLASH):
-            raise shtrove_exceptions.IriInvalid(f'does not look like an iri (got "{iri}")')
-        _scheme = ''
+            raise shtrove_exceptions.IriInvalid(
+                f'does not look like an iri (got "{iri}")'
+            )
+        _scheme = ""
         _remainder = iri
     # for an iri with '://', is "safe enough" to normalize a little:
     _split_remainder = _urp.urlsplit(_remainder)
-    _cleaned_remainder = _urp.urlunsplit((
-        '',  # scheme already split
-        _split_remainder.netloc,
-        _split_remainder.path.rstrip('/'),  # remove trailing slashes
-        _split_remainder.query,  # will drop '?' if no querystring
-        _split_remainder.fragment,  # will drop '#' if no fragment
-    ))
+    _cleaned_remainder = _urp.urlunsplit(
+        (
+            "",  # scheme already split
+            _split_remainder.netloc,
+            _split_remainder.path.rstrip("/"),  # remove trailing slashes
+            _split_remainder.query,  # will drop '?' if no querystring
+            _split_remainder.fragment,  # will drop '#' if no fragment
+        )
+    )
     return (_cleaned_remainder, _scheme)
 
 
 def is_worthwhile_iri(iri: str) -> bool:
-    '''
+    """
     >>> is_worthwhile_iri('flipl://iri.example/blarg/?#')
     True
     >>> is_worthwhile_iri('namly:urn.example:blerg')
     True
     >>> is_worthwhile_iri('_:1234')
     False
-    '''
-    return (
-        isinstance(iri, str)
-        and not iri.startswith('_')  # skip artefacts of sharev2 shenanigans
-    )
+    """
+    return isinstance(iri, str) and not iri.startswith(
+        "_"
+    )  # skip artefacts of sharev2 shenanigans
 
 
-def iri_path_as_keyword(iris: list[str] | tuple[str, ...], *, suffuniq: bool = False) -> str:
-    '''return a string-serialized list of iris
+def iri_path_as_keyword(
+    iris: list[str] | tuple[str, ...], *, suffuniq: bool = False
+) -> str:
+    """return a string-serialized list of iris
 
     meant for storing in an elasticsearch "keyword" field (happens to use json)
     >>> iri_path_as_keyword(['flipl://iri.example/blarg', 'namly:urn.example:blerg'])
@@ -137,22 +145,18 @@ def iri_path_as_keyword(iris: list[str] | tuple[str, ...], *, suffuniq: bool = F
     ...     ['flipl://iri.example/blarg', 'namly:urn.example:blerg'],
     ...     suffuniq=True)
     '["://iri.example/blarg", "namly:urn.example:blerg"]'
-    '''
+    """
     assert isinstance(iris, (list, tuple)) and all(
-        isinstance(_pathstep, str)
-        for _pathstep in iris
-    ), f'expected list or tuple of str, got {iris}'
+        isinstance(_pathstep, str) for _pathstep in iris
+    ), f"expected list or tuple of str, got {iris}"
     _list = iris
     if suffuniq:
-        _list = [
-            get_sufficiently_unique_iri(_iri)
-            for _iri in iris
-        ]
+        _list = [get_sufficiently_unique_iri(_iri) for _iri in iris]
     return json.dumps(_list)
 
 
 def unquote_iri(iri: str) -> str:
-    '''
+    """
     like `urllib.parse.unquote` but recognizes multiply-quoted IRIs
     (unquoting until starting "foo:" or "://", leaving further quoted characters intact)
 
@@ -177,7 +181,7 @@ def unquote_iri(iri: str) -> str:
     'flipl://iri.example/blarg/?param=%3A%2F%2Fbl%40rg%3F'
     >>> unquote_iri(_urp.quote(_urp.quote(_urp.quote(_unquoted))))
     'flipl://iri.example/blarg/?param=%3A%2F%2Fbl%40rg%3F'
-    '''
+    """
     _unquoted_iri = iri
     while not UNQUOTED_IRI_REGEX.match(_unquoted_iri):
         _next_unquoted_iri = _urp.unquote(_unquoted_iri)
@@ -188,7 +192,7 @@ def unquote_iri(iri: str) -> str:
 
 
 def smells_like_iri(maybe_iri: str) -> bool:
-    '''check a string starts like an IRI (does not fully validate)
+    """check a string starts like an IRI (does not fully validate)
 
     >>> smells_like_iri('https://blarg.example/hello')
     True
@@ -203,7 +207,7 @@ def smells_like_iri(maybe_iri: str) -> bool:
     False
     >>> smells_like_iri(7)
     False
-    '''
+    """
     try:
         return (
             isinstance(maybe_iri, str)

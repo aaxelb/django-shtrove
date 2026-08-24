@@ -15,7 +15,7 @@ def datetime_isoformat_z(dt: datetime.datetime | rdf.Literal | str) -> str:
         dt = datetime.datetime.fromisoformat(dt)
     if isinstance(dt, datetime.datetime) and dt.tzinfo is None:
         dt = dt.astimezone(datetime.UTC)
-    return dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def now_utc():

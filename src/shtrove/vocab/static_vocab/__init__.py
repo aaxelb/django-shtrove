@@ -7,10 +7,9 @@ import rdflib
 from shtrove.util.iris import get_sufficiently_unique_iri
 from shtrove.vocab.trove import TROVE_API_THESAURUS
 
-
 __all__ = (
-    'combined_thesaurus',
-    'combined_thesaurus__suffuniq',
+    "combined_thesaurus",
+    "combined_thesaurus__suffuniq",
 )
 
 
@@ -20,20 +19,20 @@ _STATIC_THESAURUSES = (
 )
 
 _STATIC_TURTLES = (
-    'dublin_core_abstract_model.turtle',
-    'dublin_core_elements.turtle',
-    'dublin_core_terms.turtle',
-    'dublin_core_type.turtle',
-    'dcat.turtle',
-    'owl.turtle',
-    'rdf.turtle',
-    'rdfs.turtle',
-    'prov.turtle',
+    "dublin_core_abstract_model.turtle",
+    "dublin_core_elements.turtle",
+    "dublin_core_terms.turtle",
+    "dublin_core_type.turtle",
+    "dcat.turtle",
+    "owl.turtle",
+    "rdf.turtle",
+    "rdfs.turtle",
+    "prov.turtle",
 )
 
 _STATIC_XMLS = (
-    'skos.rdf.xml',
-    'foaf.rdf.xml',
+    "skos.rdf.xml",
+    "foaf.rdf.xml",
 )
 
 
@@ -51,10 +50,12 @@ def combined_thesaurus():  # type: ignore
 
 @functools.cache
 def combined_thesaurus__suffuniq():  # type: ignore
-    return types.MappingProxyType({
-        get_sufficiently_unique_iri(_subj): _twoples
-        for _subj, _twoples in combined_thesaurus().items()
-    })
+    return types.MappingProxyType(
+        {
+            get_sufficiently_unique_iri(_subj): _twoples
+            for _subj, _twoples in combined_thesaurus().items()
+        }
+    )
 
 
 def _load_static_turtle(turtle_filename: str) -> rdf.RdfTripleDictionary:
@@ -68,7 +69,7 @@ def _load_static_xml(xml_filename: str) -> rdf.RdfTripleDictionary:
     # assumed same directory as this file
     _graph = rdflib.Graph()
     with open(_local_filepath(xml_filename)) as _vocab_file:
-        _graph.parse(_vocab_file, format='xml')
+        _graph.parse(_vocab_file, format="xml")
     return rdf.tripledict_from_rdflib(_graph)
 
 

@@ -7,10 +7,7 @@ import shtrove.util.iter
 import shtrove.util.propertypath
 import shtrove.vocab.mediatypes
 
-_DOCTEST_OPTIONFLAGS = (
-    doctest.ELLIPSIS
-    | doctest.NORMALIZE_WHITESPACE
-)
+_DOCTEST_OPTIONFLAGS = doctest.ELLIPSIS | doctest.NORMALIZE_WHITESPACE
 
 _MODULES_WITH_DOCTESTS = (
     shtrove.util.chainmap,

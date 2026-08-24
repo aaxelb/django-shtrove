@@ -1,5 +1,5 @@
-"""shtrove.extract.types: abstract interface for extracting metadata from a type of document
-"""
+"""shtrove.extract.types: abstract interface for extracting metadata from a type of document"""
+
 import typing
 
 
@@ -7,7 +7,9 @@ class ProtoExtract(typing.Protocol):
     @classmethod
     def accepts(cls, mediatype: str) -> bool: ...
 
-    def extract(self, input_document: str, *, focus_iri: str) -> ProtoResourceMetadatum: ...
+    def extract(
+        self, input_document: str, *, focus_iri: str
+    ) -> ProtoResourceMetadatum: ...
 
 
 class ProtoResourceMetadatum(typing.Protocol):

@@ -1,6 +1,6 @@
-"""shtrove.extract
-"""
+"""shtrove.extract"""
+
 __all__ = (
-    'basic',
-    'types',
+    "basic",
+    "types",
 )

@@ -18,52 +18,53 @@ from shtrove.util.iris import (
 )
 from shtrove.vocab.namespaces import OWL
 
-
 # for choosing among multiple schemes
 IRI_SCHEME_PREFERENCE_ORDER = (
-    'https',
-    'http',
+    "https",
+    "http",
 )
 
 
 ###
 # validator functions
 
+
 def validate_iri_scheme(iri_scheme: str) -> None:
-    '''raise a django ValidationError if not a valid iri scheme
-    '''
+    """raise a django ValidationError if not a valid iri scheme"""
     if not isinstance(iri_scheme, str):
-        raise ValidationError('not a string')
+        raise ValidationError("not a string")
     if not IRI_SCHEME_REGEX.fullmatch(iri_scheme):
-        raise ValidationError('not a valid iri scheme')
+        raise ValidationError("not a valid iri scheme")
 
 
 def validate_sufficiently_unique_iri(suffuniq_iri: str) -> None:
-    '''raise a django ValidationError if not a valid "sufficiently unique iri"
-    '''
+    """raise a django ValidationError if not a valid "sufficiently unique iri" """
     if not isinstance(suffuniq_iri, str):
-        raise ValidationError('not a string')
-    (_maybescheme, _colonslashslash, _rest) = suffuniq_iri.partition(COLON_SLASH_SLASH)
+        raise ValidationError("not a string")
+    _maybescheme, _colonslashslash, _rest = suffuniq_iri.partition(COLON_SLASH_SLASH)
     if _colonslashslash:
         if _maybescheme:
             raise ValidationError('iri containing "://" should start with it')
     else:
-        (_scheme, _colon, _rest) = suffuniq_iri.partition(COLON)
+        _scheme, _colon, _rest = suffuniq_iri.partition(COLON)
         if not _colon:
-            raise ValidationError('an iri needs a colon')
+            raise ValidationError("an iri needs a colon")
         validate_iri_scheme(_scheme)
     if not _rest:
-        raise ValidationError('need more iri beyond a scheme')
+        raise ValidationError("need more iri beyond a scheme")
 
 
 ###
 # model manager
 
+
 class ResourceIdentifierManager(models.Manager["ResourceIdentifier"]):
     def queryset_for_iri(self, iri: str) -> QuerySet[ResourceIdentifier]:
         return self.queryset_for_iris((iri,))
 
-    def queryset_for_iris(self, iris: typing.Iterable[str]) -> QuerySet[ResourceIdentifier]:
+    def queryset_for_iris(
+        self, iris: typing.Iterable[str]
+    ) -> QuerySet[ResourceIdentifier]:
         # may raise if invalid
         _suffuniq_iris = set()
         for _iri in iris:
@@ -71,16 +72,18 @@ class ResourceIdentifierManager(models.Manager["ResourceIdentifier"]):
         return self.filter(sufficiently_unique_iri__in=_suffuniq_iris)
 
     def get_for_iri(self, iri: str) -> ResourceIdentifier:
-        return self.queryset_for_iri(iri).get()  # may raise ResourceIdentifier.DoesNotExist
+        return self.queryset_for_iri(
+            iri
+        ).get()  # may raise ResourceIdentifier.DoesNotExist
 
     def get_or_create_for_iri(self, iri: str) -> ResourceIdentifier:
         # may raise if invalid
-        (_suffuniq_iri, _scheme) = get_sufficiently_unique_iri_and_scheme(iri)
-        (_identifier, _created) = self.get_or_create(
+        _suffuniq_iri, _scheme = get_sufficiently_unique_iri_and_scheme(iri)
+        _identifier, _created = self.get_or_create(
             suffuniq_iri=_suffuniq_iri,
             defaults={
-                'scheme_list': [_scheme],
-                'raw_iri_list': [iri],
+                "scheme_list": [_scheme],
+                "raw_iri_list": [iri],
             },
         )
         _needs_save = False
@@ -98,7 +101,7 @@ class ResourceIdentifierManager(models.Manager["ResourceIdentifier"]):
         self,
         tripledict: primitive_rdf.RdfTripleDictionary,
         focus_iri: str,
-    ) -> list['ResourceIdentifier']:
+    ) -> list["ResourceIdentifier"]:
         _identifier_set = [self.get_or_create_for_iri(focus_iri)]
         _identifier_set.extend(
             self.get_or_create_for_iri(_sameas_iri)
@@ -110,6 +113,7 @@ class ResourceIdentifierManager(models.Manager["ResourceIdentifier"]):
 
 ###
 # the model itself
+
 
 class ResourceIdentifier(models.Model):
     objects = ResourceIdentifierManager()
@@ -136,7 +140,7 @@ class ResourceIdentifier(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                name='%(app_label)s_%(class)s_suffuniq_iri_matches_scheme_list',
+                name="%(app_label)s_%(class)s_suffuniq_iri_matches_scheme_list",
                 check=(
                     # suffuniq_iri contains ":" (to avoid Substr breaking)...
                     models.Q(sufficiently_unique_iri__contains=COLON)
@@ -146,11 +150,13 @@ class ResourceIdentifier(models.Model):
                             scheme_list__len__gt=0,
                         )
                         | models.Q(  # ...or starts with the only item in scheme_list.
-                            scheme_list=[Substr(
-                                'suffuniq_iri',
-                                1,  # start of string (1-indexed)
-                                StrIndex('suffuniq_iri', models.Value(COLON)) - 1,
-                            )],
+                            scheme_list=[
+                                Substr(
+                                    "suffuniq_iri",
+                                    1,  # start of string (1-indexed)
+                                    StrIndex("suffuniq_iri", models.Value(COLON)) - 1,
+                                )
+                            ],
                         )
                     )
                 ),
@@ -166,7 +172,7 @@ class ResourceIdentifier(models.Model):
     def as_iri(self) -> str:
         _suffuniq_iri = self.suffuniq_iri
         return (
-            ''.join((self.choose_a_scheme(), _suffuniq_iri))
+            "".join((self.choose_a_scheme(), _suffuniq_iri))
             if _suffuniq_iri.startswith(COLON_SLASH_SLASH)
             else _suffuniq_iri
         )
@@ -175,7 +181,7 @@ class ResourceIdentifier(models.Model):
         try:
             (_scheme,) = self.scheme_list
         except ValueError:
-            assert len(self.scheme_list) > 0, 'but there\'s a check constraint!'
+            assert len(self.scheme_list) > 0, "but there's a check constraint!"
             try:
                 _scheme = next(
                     _preferred_scheme
@@ -188,7 +194,7 @@ class ResourceIdentifier(models.Model):
         return _scheme
 
     def equivalent_to_iri(self, iri: str) -> bool:
-        return (self.suffuniq_iri == get_sufficiently_unique_iri(iri))
+        return self.suffuniq_iri == get_sufficiently_unique_iri(iri)
 
     def find_equivalent_iri(self, tripledict: primitive_rdf.RdfTripleDictionary) -> str:
         _identifier_iri = self.as_iri()
@@ -200,8 +206,7 @@ class ResourceIdentifier(models.Model):
                 _identifier_iri in _sameas_set
                 or self.equivalent_to_iri(_iri)
                 or any(
-                    self.equivalent_to_iri(_sameas_iri)
-                    for _sameas_iri in _sameas_set
+                    self.equivalent_to_iri(_sameas_iri) for _sameas_iri in _sameas_set
                 )
             )
             if _is_equivalent:

@@ -42,6 +42,7 @@ class SimpleChainMap[K, V](Mapping[K, V]):
     >>> _map.with_new({'a': 17}).get('a')
     17
     """
+
     maps: Sequence[Mapping[K, V]]
 
     def __getitem__(self, key: K) -> V:

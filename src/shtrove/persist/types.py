@@ -1,5 +1,5 @@
-"""shtrove.derive.types: interface for deriving a specific representation of a metadata record
-"""
+"""shtrove.derive.types: interface for deriving a specific representation of a metadata record"""
+
 import typing
 
 from primitive_metadata import primitive_rdf as rdf
@@ -15,7 +15,7 @@ class ProtoPersist(typing.Protocol):
         self,
         resource_metadatum: ProtoResourceMetadatum,
         *,
-        record_identifier: str = '',
+        record_identifier: str = "",
         restore_deleted: bool = False,
     ) -> ProtoCatalogRecord: ...
 
@@ -27,20 +27,26 @@ class ProtoPersist(typing.Protocol):
     ) -> ProtoCatalogRecord: ...
 
     def store_derived_metadatum(
-        self,
-        derived_metadatum: ProtoDerivedMetadatum,
-        *,
-        record
+        self, derived_metadatum: ProtoDerivedMetadatum, *, record
     ) -> None: ...
 
     ###
     # browse by record uuid
 
     def get_record(self, record_uuid: uuid.UUID) -> ProtoCatalogRecord: ...
-    def get_current_metadatum(self, record_uuid: uuid.UUID) -> ProtoResourceMetadatum: ...
-    def get_each_supplementary_metadatum(self, record_uuid: uuid.UUID) -> cabc.Iterable[ProtoResourceMetadatum]: ...
-    def get_each_archived_metadatum(self, record_uuid: uuid.UUID) -> cabc.Iterable[ProtoResourceMetadatum]: ...
-    def get_derived_metadatum(self, record_uuid: uuid.UUID, derived_datatype_iri: str) -> ProtoDerivedMetadatum
+    def get_current_metadatum(
+        self, record_uuid: uuid.UUID
+    ) -> ProtoResourceMetadatum: ...
+    def get_each_supplementary_metadatum(
+        self, record_uuid: uuid.UUID
+    ) -> cabc.Iterable[ProtoResourceMetadatum]: ...
+    def get_each_archived_metadatum(
+        self, record_uuid: uuid.UUID
+    ) -> cabc.Iterable[ProtoResourceMetadatum]: ...
+    def get_derived_metadatum(
+        self, record_uuid: uuid.UUID, derived_datatype_iri: str
+    ) -> ProtoDerivedMetadatum: ...
+
     # TODO: consider optimized methods?
     # query/sort archived metadata by date?
 
@@ -48,17 +54,21 @@ class ProtoPersist(typing.Protocol):
     # browse by focus iri
 
     def get_combined_metadata(self, focus_iri: str) -> ProtoCombinedMetadata: ...
-    def get_each_record_by_focus(self, focus_iri: str) -> cabc.Iterable[ProtoCatalogRecord]: ...
+    def get_each_record_by_focus(
+        self, focus_iri: str
+    ) -> cabc.Iterable[ProtoCatalogRecord]: ...
 
 
 ###
 # input/output protocols
+
 
 class ProtoCatalogRecord(typing.Protocol):
     """ProtoCatalogRecord: describing a shtrove catalog record
 
     corresponds to `dcat:CatalogRecord`: https://www.w3.org/TR/vocab-dcat/#Class:Catalog_Record
     """
+
     record_uuid: uuid.UUID
 
     # foaf:primaryTopic (iris synonymously identifying a single resource, owl:sameAs each other)

@@ -14,9 +14,9 @@ class _BaseTurtleRendererTest(_base.TroveRendererTests):
 
 class TestTurtleRenderer(_BaseTurtleRendererTest):
     expected_outputs = {
-        'simple_card': EntireRendering(
-            mediatype='text/turtle',
-            entire_content='''
+        "simple_card": EntireRendering(
+            mediatype="text/turtle",
+            entire_content="""
 @prefix blarg: <http://blarg.example/vocab/> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -31,11 +31,11 @@ blarg:aCard a dcat:CatalogRecord, trove:Indexcard ;
     foaf:primaryTopic blarg:anItem ;
     trove:focusIdentifier "http://blarg.example/vocab/anItem"^^rdf:string ;
     trove:resourceMetadata "{\\"@id\\": \\"http://blarg.example/vocab/anItem\\", \\"title\\": [{\\"@value\\": \\"an item, yes\\"}]}"^^rdf:JSON .
-''',
+""",
         ),
-        'various_types': EntireRendering(
-            mediatype='text/turtle',
-            entire_content='''
+        "various_types": EntireRendering(
+            mediatype="text/turtle",
+            entire_content="""
 @prefix blarg: <http://blarg.example/vocab/> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
@@ -47,27 +47,29 @@ blarg:aSubject a blarg:aType ;
     blarg:hasRdfLangStringLiteral "a rdf:langString literal"@en ;
     blarg:hasRdfStringLiteral "an rdf:string literal"^^rdf:string ;
     blarg:hasStrangeLiteral "a literal of strange datatype"^^blarg:aStrangeDatatype .
-''',
+""",
         ),
     }
 
 
-class TestTurtleTrovesearchRenderer(_BaseTurtleRendererTest, _base.TrovesearchRendererTests):
+class TestTurtleTrovesearchRenderer(
+    _BaseTurtleRendererTest, _base.TrovesearchRendererTests
+):
     expected_outputs = {
-        'no_results': EntireRendering(
-            mediatype='text/turtle',
-            entire_content='''
+        "no_results": EntireRendering(
+            mediatype="text/turtle",
+            entire_content="""
 @prefix blarg: <http://blarg.example/vocab/> .
 @prefix trove: <https://share.osf.io/vocab/2023/trove/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 blarg:aSearch a trove:Cardsearch ;
     trove:totalResultCount 0 .
-''',
+""",
         ),
-        'few_results': EntireRendering(
-            mediatype='text/turtle',
-            entire_content='''
+        "few_results": EntireRendering(
+            mediatype="text/turtle",
+            entire_content="""
 @prefix blarg: <http://blarg.example/vocab/> .
 @prefix dcat: <http://www.w3.org/ns/dcat#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
@@ -114,6 +116,6 @@ blarg:aCarddd a dcat:CatalogRecord, trove:Indexcard ;
     foaf:primaryTopic blarg:anItemmm ;
     trove:focusIdentifier "http://blarg.example/vocab/anItemmm"^^rdf:string ;
     trove:resourceMetadata "{\\"@id\\": \\"http://blarg.example/vocab/anItemmm\\", \\"sameAs\\": [{\\"@id\\": \\"https://doi.example/13.0/anItemmm\\"}], \\"title\\": [{\\"@value\\": \\"an itemmm, yes\\"}], \\"creator\\": [{\\"@id\\": \\"http://blarg.example/vocab/aPerson\\", \\"resourceType\\": [{\\"@id\\": \\"Agent\\"}, {\\"@id\\": \\"Person\\"}], \\"identifier\\": [{\\"@value\\": \\"http://blarg.example/vocab/aPerson\\"}], \\"name\\": [{\\"@value\\": \\"a person indeed\\"}]}], \\"dateCreated\\": [{\\"@value\\": \\"2001-02-03\\"}]}"^^rdf:JSON .
-''',
+""",
         ),
     }

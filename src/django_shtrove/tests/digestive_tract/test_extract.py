@@ -16,27 +16,29 @@ class TestDigestiveTractExtract(TestCase):
         cls.user = factories.ShareUserFactory()
         cls.focus_iri = _BLARG.this
         cls.suid = digestive_tract.sniff(from_user=cls.user, focus_iri=cls.focus_iri)
-        cls.raw_turtle = '''@prefix blarg: <http://blarg.example/vocab/> .
+        cls.raw_turtle = """@prefix blarg: <http://blarg.example/vocab/> .
 blarg:this
     a blarg:Thing ;
     blarg:like blarg:that .
-'''
+"""
         cls.supp_suid = digestive_tract.sniff(
             from_user=cls.user,
             focus_iri=cls.focus_iri,
-            record_identifier=f'supp:{cls.focus_iri}',
+            record_identifier=f"supp:{cls.focus_iri}",
             is_supplementary=True,
         )
-        cls.supp_raw_turtle = '''@prefix blarg: <http://blarg.example/vocab/> .
+        cls.supp_raw_turtle = """@prefix blarg: <http://blarg.example/vocab/> .
 blarg:this blarg:like blarg:another ;
     blarg:unlike blarg:nonthing .
-'''
+"""
 
     def test_setup(self):
         self.assertEqual(trove_db.Indexcard.objects.all().count(), 0)
         self.assertEqual(trove_db.LatestResourceDescription.objects.all().count(), 0)
         self.assertEqual(trove_db.ArchivedResourceDescription.objects.all().count(), 0)
-        self.assertEqual(trove_db.SupplementaryResourceDescription.objects.all().count(), 0)
+        self.assertEqual(
+            trove_db.SupplementaryResourceDescription.objects.all().count(), 0
+        )
 
     def test_extract(self):
         (_indexcard,) = digestive_tract.extract(
@@ -46,30 +48,40 @@ blarg:this blarg:like blarg:another ;
         )
         self.assertEqual(_indexcard.source_record_suid_id, self.suid.id)
         _focus_idents = list(
-            _indexcard.focus_identifier_set.values_list('sufficiently_unique_iri', flat=True),
+            _indexcard.focus_identifier_set.values_list(
+                "sufficiently_unique_iri", flat=True
+            ),
         )
-        self.assertEqual(_focus_idents, ['://blarg.example/vocab/this'])
+        self.assertEqual(_focus_idents, ["://blarg.example/vocab/this"])
         _focustype_idents = list(
-            _indexcard.focustype_identifier_set.values_list('sufficiently_unique_iri', flat=True),
+            _indexcard.focustype_identifier_set.values_list(
+                "sufficiently_unique_iri", flat=True
+            ),
         )
-        self.assertEqual(_focustype_idents, ['://blarg.example/vocab/Thing'])
+        self.assertEqual(_focustype_idents, ["://blarg.example/vocab/Thing"])
         self.assertEqual(list(_indexcard.supplementary_description_set.all()), [])
         _latest_resource_description = _indexcard.latest_resource_description
         self.assertEqual(_latest_resource_description.indexcard_id, _indexcard.id)
         self.assertEqual(_latest_resource_description.focus_iri, _BLARG.this)
         self.assertIsNone(_latest_resource_description.expiration_date)
-        self.assertEqual(_latest_resource_description.as_rdf_tripledict(), {
-            _BLARG.this: {
-                rdf.RDF.type: {_BLARG.Thing},
-                _BLARG.like: {_BLARG.that},
+        self.assertEqual(
+            _latest_resource_description.as_rdf_tripledict(),
+            {
+                _BLARG.this: {
+                    rdf.RDF.type: {_BLARG.Thing},
+                    _BLARG.like: {_BLARG.that},
+                },
             },
-        })
-        self.assertEqual(_latest_resource_description.as_rdfdoc_with_supplements().tripledict, {
-            _BLARG.this: {
-                rdf.RDF.type: {_BLARG.Thing},
-                _BLARG.like: {_BLARG.that},
+        )
+        self.assertEqual(
+            _latest_resource_description.as_rdfdoc_with_supplements().tripledict,
+            {
+                _BLARG.this: {
+                    rdf.RDF.type: {_BLARG.Thing},
+                    _BLARG.like: {_BLARG.that},
+                },
             },
-        })
+        )
 
     def test_extract_before_expiration(self):
         _expir = datetime.date.today() + datetime.timedelta(days=3)
@@ -81,30 +93,40 @@ blarg:this blarg:like blarg:another ;
         )
         self.assertEqual(_indexcard.source_record_suid_id, self.suid.id)
         _focus_idents = list(
-            _indexcard.focus_identifier_set.values_list('sufficiently_unique_iri', flat=True),
+            _indexcard.focus_identifier_set.values_list(
+                "sufficiently_unique_iri", flat=True
+            ),
         )
-        self.assertEqual(_focus_idents, ['://blarg.example/vocab/this'])
+        self.assertEqual(_focus_idents, ["://blarg.example/vocab/this"])
         _focustype_idents = list(
-            _indexcard.focustype_identifier_set.values_list('sufficiently_unique_iri', flat=True),
+            _indexcard.focustype_identifier_set.values_list(
+                "sufficiently_unique_iri", flat=True
+            ),
         )
-        self.assertEqual(_focustype_idents, ['://blarg.example/vocab/Thing'])
+        self.assertEqual(_focustype_idents, ["://blarg.example/vocab/Thing"])
         self.assertEqual(list(_indexcard.supplementary_description_set.all()), [])
         _latest_resource_description = _indexcard.latest_resource_description
         self.assertEqual(_latest_resource_description.indexcard_id, _indexcard.id)
         self.assertEqual(_latest_resource_description.focus_iri, _BLARG.this)
         self.assertEqual(_latest_resource_description.expiration_date, _expir)
-        self.assertEqual(_latest_resource_description.as_rdf_tripledict(), {
-            _BLARG.this: {
-                rdf.RDF.type: {_BLARG.Thing},
-                _BLARG.like: {_BLARG.that},
+        self.assertEqual(
+            _latest_resource_description.as_rdf_tripledict(),
+            {
+                _BLARG.this: {
+                    rdf.RDF.type: {_BLARG.Thing},
+                    _BLARG.like: {_BLARG.that},
+                },
             },
-        })
-        self.assertEqual(_latest_resource_description.as_rdfdoc_with_supplements().tripledict, {
-            _BLARG.this: {
-                rdf.RDF.type: {_BLARG.Thing},
-                _BLARG.like: {_BLARG.that},
+        )
+        self.assertEqual(
+            _latest_resource_description.as_rdfdoc_with_supplements().tripledict,
+            {
+                _BLARG.this: {
+                    rdf.RDF.type: {_BLARG.Thing},
+                    _BLARG.like: {_BLARG.that},
+                },
             },
-        })
+        )
 
     def test_extract_supplement_before_expiration(self):
         (_indexcard,) = digestive_tract.extract(
@@ -133,7 +155,9 @@ blarg:this blarg:like blarg:another ;
         self.assertEqual(trove_db.Indexcard.objects.all().count(), 0)
         self.assertEqual(trove_db.LatestResourceDescription.objects.all().count(), 0)
         self.assertEqual(trove_db.ArchivedResourceDescription.objects.all().count(), 0)
-        self.assertEqual(trove_db.SupplementaryResourceDescription.objects.all().count(), 0)
+        self.assertEqual(
+            trove_db.SupplementaryResourceDescription.objects.all().count(), 0
+        )
 
     def test_extract_supplementary(self):
         (_orig_indexcard,) = digestive_tract.extract(
@@ -153,20 +177,28 @@ blarg:this blarg:like blarg:another ;
         self.assertEqual(_supp_rdf.indexcard_id, _indexcard.id)
         self.assertEqual(_supp_rdf.focus_iri, _BLARG.this)
         self.assertIsNone(_supp_rdf.expiration_date)
-        self.assertEqual(_supp_rdf.as_rdf_tripledict(), {
-            _BLARG.this: {
-                _BLARG.like: {_BLARG.another},
-                _BLARG.unlike: {_BLARG.nonthing},
+        self.assertEqual(
+            _supp_rdf.as_rdf_tripledict(),
+            {
+                _BLARG.this: {
+                    _BLARG.like: {_BLARG.another},
+                    _BLARG.unlike: {_BLARG.nonthing},
+                },
             },
-        })
-        self.assertEqual(_indexcard.latest_resource_description.modified, _orig_timestamp)
-        self.assertEqual(_indexcard.latest_resource_description.as_rdfdoc_with_supplements().tripledict, {
-            _BLARG.this: {
-                rdf.RDF.type: {_BLARG.Thing},
-                _BLARG.like: {_BLARG.that, _BLARG.another},
-                _BLARG.unlike: {_BLARG.nonthing},
+        )
+        self.assertEqual(
+            _indexcard.latest_resource_description.modified, _orig_timestamp
+        )
+        self.assertEqual(
+            _indexcard.latest_resource_description.as_rdfdoc_with_supplements().tripledict,
+            {
+                _BLARG.this: {
+                    rdf.RDF.type: {_BLARG.Thing},
+                    _BLARG.like: {_BLARG.that, _BLARG.another},
+                    _BLARG.unlike: {_BLARG.nonthing},
+                },
             },
-        })
+        )
 
     def test_extract_empty_with_prior(self):
         (_prior_indexcard,) = digestive_tract.extract(
@@ -179,7 +211,7 @@ blarg:this blarg:like blarg:another ;
         (_indexcard,) = digestive_tract.extract(
             suid=self.suid,
             record_mediatype=mediatypes.TURTLE,
-            raw_record=' ',  # no data
+            raw_record=" ",  # no data
         )
         self.assertEqual(_indexcard.id, _prior_indexcard.id)
         self.assertIsNotNone(_indexcard.deleted)
@@ -190,7 +222,7 @@ blarg:this blarg:like blarg:another ;
         _cards = digestive_tract.extract(
             suid=self.suid,
             record_mediatype=mediatypes.TURTLE,
-            raw_record=' ',  # no data
+            raw_record=" ",  # no data
         )
         self.assertEqual(_cards, [])
 
@@ -209,7 +241,7 @@ blarg:this blarg:like blarg:another ;
         (_indexcard,) = digestive_tract.extract(
             suid=self.supp_suid,
             record_mediatype=mediatypes.TURTLE,
-            raw_record=' ',  # no data
+            raw_record=" ",  # no data
         )
         self.assertEqual(_indexcard.id, _orig_indexcard.id)
         self.assertFalse(_orig_indexcard.supplementary_description_set.exists())

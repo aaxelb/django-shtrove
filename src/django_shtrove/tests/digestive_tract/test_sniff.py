@@ -19,12 +19,15 @@ class TestDigestiveTractSniff(TestCase):
     def test_sniff(self):
         digestive_tract.sniff(
             from_user=self.user,
-            record_identifier='blarg',
+            record_identifier="blarg",
             focus_iri=BLARG.this,
         )
         (_suid,) = share_db.SourceUniqueIdentifier.objects.all()
-        self.assertEqual(_suid.identifier, 'blarg')
-        self.assertEqual(_suid.focus_identifier.sufficiently_unique_iri, '://blarg.example/vocab/this')
+        self.assertEqual(_suid.identifier, "blarg")
+        self.assertEqual(
+            _suid.focus_identifier.sufficiently_unique_iri,
+            "://blarg.example/vocab/this",
+        )
         self.assertEqual(_suid.source_config.source.user_id, self.user.id)
         self.assertFalse(_suid.is_supplementary)
 
@@ -35,43 +38,51 @@ class TestDigestiveTractSniff(TestCase):
         )
         (_suid,) = share_db.SourceUniqueIdentifier.objects.all()
         self.assertEqual(_suid.identifier, BLARG.this)
-        self.assertEqual(_suid.focus_identifier.sufficiently_unique_iri, '://blarg.example/vocab/this')
+        self.assertEqual(
+            _suid.focus_identifier.sufficiently_unique_iri,
+            "://blarg.example/vocab/this",
+        )
         self.assertEqual(_suid.source_config.source.user_id, self.user.id)
         self.assertFalse(_suid.is_supplementary)
 
     def test_sniff_supplementary(self):
         digestive_tract.sniff(
             from_user=self.user,
-            record_identifier='blarg',
+            record_identifier="blarg",
             focus_iri=BLARG.this,
             is_supplementary=True,
         )
         (_suid,) = share_db.SourceUniqueIdentifier.objects.all()
-        self.assertEqual(_suid.identifier, 'blarg')
-        self.assertEqual(_suid.focus_identifier.sufficiently_unique_iri, '://blarg.example/vocab/this')
+        self.assertEqual(_suid.identifier, "blarg")
+        self.assertEqual(
+            _suid.focus_identifier.sufficiently_unique_iri,
+            "://blarg.example/vocab/this",
+        )
         self.assertEqual(_suid.source_config.source.user_id, self.user.id)
         self.assertTrue(_suid.is_supplementary)
 
     def test_error_focus_iri(self):
         with self.assertRaises(trove_exceptions.DigestiveError):
-            digestive_tract.sniff(from_user=self.user, focus_iri='blam')
+            digestive_tract.sniff(from_user=self.user, focus_iri="blam")
         with self.assertRaises(trove_exceptions.DigestiveError):
-            digestive_tract.sniff(from_user=self.user, focus_iri='')
+            digestive_tract.sniff(from_user=self.user, focus_iri="")
 
     def test_error_missing_record_identifier(self):
         with self.assertRaises(trove_exceptions.DigestiveError):
-            digestive_tract.sniff(from_user=self.user, focus_iri=BLARG.foo, is_supplementary=True)
+            digestive_tract.sniff(
+                from_user=self.user, focus_iri=BLARG.foo, is_supplementary=True
+            )
 
     def test_error_change_focus(self):
         digestive_tract.sniff(
             from_user=self.user,
-            record_identifier='foo',
+            record_identifier="foo",
             focus_iri=BLARG.bar,
         )
         with self.assertRaises(trove_exceptions.DigestiveError):
             digestive_tract.sniff(
                 from_user=self.user,
-                record_identifier='foo',
+                record_identifier="foo",
                 focus_iri=BLARG.different,
             )
 
@@ -79,12 +90,12 @@ class TestDigestiveTractSniff(TestCase):
         digestive_tract.sniff(
             from_user=self.user,
             focus_iri=BLARG.foo,
-            record_identifier='foo-supp',
+            record_identifier="foo-supp",
             is_supplementary=True,
         )
         with self.assertRaises(trove_exceptions.DigestiveError):
             digestive_tract.sniff(
                 from_user=self.user,
                 focus_iri=BLARG.foo,
-                record_identifier='foo-supp',
+                record_identifier="foo-supp",
             )

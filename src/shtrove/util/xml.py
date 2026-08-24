@@ -10,20 +10,20 @@ from xml.etree.ElementTree import (
 
 from primitive_metadata import primitive_rdf as rdf
 
-
-__all__ = ('XmlBuilder',)
+__all__ = ("XmlBuilder",)
 
 
 @dataclasses.dataclass
 class XmlBuilder:
-    '''XmlBuilder: for building XML (an alternate convenience wrapper around xml.etree)
+    """XmlBuilder: for building XML (an alternate convenience wrapper around xml.etree)
 
     >>> _xb = XmlBuilder('foo')
     >>> with _xb.nest('bar', {'blib': 'bloz'}):
     ...   _xb.leaf('baz', text='hello')
     ...   _xb.leaf('boz', {'blib': 'blab'}, text='world')
     >>> str(_xb)
-    '''
+    """
+
     root_tag_name: str
     root_attrs: dict = dataclasses.field(default_factory=dict)
     _: dataclasses.KW_ONLY
@@ -51,7 +51,13 @@ class XmlBuilder:
             _popped_element = self._nested_elements.pop()
             assert _popped_element is _nested_element
 
-    def leaf(self, tag_name: str, attrs: dict | None = None, *, text: str | rdf.Literal | None = None) -> None:
+    def leaf(
+        self,
+        tag_name: str,
+        attrs: dict | None = None,
+        *,
+        text: str | rdf.Literal | None = None,
+    ) -> None:
         _leaf_element = SubElement(self.current_element, tag_name, attrs or {})
         if isinstance(text, rdf.Literal):
             # TODO: lang
@@ -60,7 +66,7 @@ class XmlBuilder:
             _leaf_element.text = text
 
     def __str__(self) -> str:
-        return etree_tostring(self.root_element, encoding='unicode')
+        return etree_tostring(self.root_element, encoding="unicode")
 
     def __bytes__(self) -> bytes:
-        return etree_tostring(self.root_element, encoding='utf-8', xml_declaration=True)
+        return etree_tostring(self.root_element, encoding="utf-8", xml_declaration=True)

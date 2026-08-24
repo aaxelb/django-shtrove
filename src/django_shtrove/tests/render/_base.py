@@ -34,7 +34,7 @@ def _make_fake_gathering(tripledict, renderer_type):
         norms=_organizer.norms,
         organizer=_organizer,
         gatherer_kwargs={
-            'deriver_iri': renderer_type.INDEXCARD_DERIVER_IRI,
+            "deriver_iri": renderer_type.INDEXCARD_DERIVER_IRI,
         },
         cache=_fakecache,
     )
@@ -53,11 +53,15 @@ class TroveRendererTests(BasicInputOutputTestCase):
                 given_input.focus,
                 given_input.tripledict.get(given_input.focus, {}).get(RDF.type),
             ),
-            response_gathering=_make_fake_gathering(given_input.tripledict, self.renderer_class),
+            response_gathering=_make_fake_gathering(
+                given_input.tripledict, self.renderer_class
+            ),
         )
         return _renderer.render_document()
 
-    def assert_outputs_equal(self, expected_output: typing.Any, actual_output: typing.Any) -> None:
+    def assert_outputs_equal(
+        self, expected_output: typing.Any, actual_output: typing.Any
+    ) -> None:
         if expected_output is None:
             print(repr(actual_output))
             raise NotImplementedError
@@ -69,7 +73,7 @@ class TroveRendererTests(BasicInputOutputTestCase):
 
     def _get_rendered_output(self, rendering: ProtoRendering) -> str:
         # for now, they always iter strings (update if/when bytes are in play)
-        return ''.join(map(str, rendering.iter_content()))
+        return "".join(map(str, rendering.iter_content()))
 
 
 class TrovesearchRendererTests(TroveRendererTests):

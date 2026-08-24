@@ -1,5 +1,5 @@
-"""shtrove.persist.basic: simple implementations of shtrove.persist interfaces
-"""
+"""shtrove.persist.basic: simple implementations of shtrove.persist interfaces"""
+
 import collections.abc as cabc
 import dataclasses
 import uuid
@@ -14,12 +14,14 @@ from .types import (
 )
 
 
-class BasicMemPersist(ProtoPersist):
-    ...  # TODO: basic ephemeral in-memory implementation
+class BasicMemPersist(
+    ProtoPersist
+): ...  # TODO: basic ephemeral in-memory implementation
 
 
-class BasicFiletreePersist(ProtoPersist):
-    ...  # TODO: basic implementation using a filetree
+class BasicFiletreePersist(
+    ProtoPersist
+): ...  # TODO: basic implementation using a filetree
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -28,6 +30,7 @@ class CatalogRecord(ProtoCatalogRecord):
 
     corresponds to `dcat:CatalogRecord`: https://www.w3.org/TR/vocab-dcat/#Class:Catalog_Record
     """
+
     record_uuid: uuid.UUID
 
     # foaf:primaryTopic (iris synonymously identifying a single resource, owl:sameAs each other)

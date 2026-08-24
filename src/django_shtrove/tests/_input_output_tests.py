@@ -5,14 +5,12 @@ import typing
 
 
 class BasicInputOutputTestCase(TestCase):
-    '''base for tests that have a simple/repetitive input/output pattern
-    '''
+    """base for tests that have a simple/repetitive input/output pattern"""
+
     maxDiff = None  # usually want the full diff for these tests, tho can override if you prefer
 
     # expected on subclasses:
-    inputs: typing.ClassVar[
-        dict[str, typing.Any]
-    ]
+    inputs: typing.ClassVar[dict[str, typing.Any]]
     expected_outputs: typing.ClassVar[
         # keys should match `inputs` keys (enforce with types? maybe someday)
         dict[str, typing.Any]
@@ -24,11 +22,15 @@ class BasicInputOutputTestCase(TestCase):
         raise NotImplementedError
 
     # (optional override, for when equality isn't so easy)
-    def assert_outputs_equal(self, expected_output: typing.Any, actual_output: typing.Any) -> None:
+    def assert_outputs_equal(
+        self, expected_output: typing.Any, actual_output: typing.Any
+    ) -> None:
         self.assertEqual(expected_output, actual_output)
 
     # (optional override, for when logic is more complicated)
-    def run_input_output_test(self, given_input: typing.Any, expected_output: typing.Any) -> None:
+    def run_input_output_test(
+        self, given_input: typing.Any, expected_output: typing.Any
+    ) -> None:
         _actual_output = self.compute_output(given_input)
         self.assert_outputs_equal(expected_output, _actual_output)
 
@@ -36,12 +38,16 @@ class BasicInputOutputTestCase(TestCase):
     def missing_case(self, name: str, given_input: typing.Any) -> typing.Never:
         _cls = self.__class__
         _actual_output = self.compute_output(given_input)
-        raise NotImplementedError('\n'.join((
-            'missing test case!',
-            f'\tadd "{name}" to {_cls.__module__}.{_cls.__qualname__}.expected_outputs',
-            '\tactual output, fwiw:',
-            pprint.pformat(_actual_output),
-        )))
+        raise NotImplementedError(
+            "\n".join(
+                (
+                    "missing test case!",
+                    f'\tadd "{name}" to {_cls.__module__}.{_cls.__qualname__}.expected_outputs',
+                    "\tactual output, fwiw:",
+                    pprint.pformat(_actual_output),
+                )
+            )
+        )
 
     ###
     # private details
@@ -50,7 +56,7 @@ class BasicInputOutputTestCase(TestCase):
         super().__init_subclass__(**kwargs)
         # HACK: assign `test_*` method only on concrete subclasses,
         # so the test runner doesn't try instantiating a base class
-        if getattr(cls, 'inputs', None) and getattr(cls, 'expected_outputs', None):
+        if getattr(cls, "inputs", None) and getattr(cls, "expected_outputs", None):
             cls.test_inputs_match_outputs = cls._test_inputs_match_outputs  # type: ignore[attr-defined]
 
     # the only actual test method -- assigned to concrete subclasses in __init_subclass__

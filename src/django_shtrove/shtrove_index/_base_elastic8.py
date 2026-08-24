@@ -22,7 +22,6 @@ from ._indexnames import (
     combine_indexname_parts,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -32,8 +31,7 @@ class IndexDefinition(typing.TypedDict):
 
 
 class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
-    '''abstract base class for index strategies using elasticsearch 8
-    '''
+    """abstract base class for index strategies using elasticsearch 8"""
 
     ###
     # abstract methods for subclasses to implement
@@ -54,30 +52,29 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         self,
         messages_chunk: messages.MessagesChunk,
         affected_indexnames: typing.Iterable[str],
-    ) -> None:
-        ...  # implement when needed
+    ) -> None: ...  # implement when needed
 
     ###
     # helper methods for subclasses to use (or override)
 
     def build_index_action(self, doc_id, doc_source):
         return {
-            '_op_type': 'index',
-            '_id': str(doc_id),
-            '_source': doc_source,
+            "_op_type": "index",
+            "_id": str(doc_id),
+            "_source": doc_source,
         }
 
     def build_delete_action(self, doc_id):
         return {
-            '_op_type': 'delete',
-            '_id': str(doc_id),
+            "_op_type": "delete",
+            "_id": str(doc_id),
         }
 
     def build_update_action(self, doc_id, doc_source):
         return {
-            '_op_type': 'update',
-            '_id': str(doc_id),
-            'doc': doc_source,
+            "_op_type": "update",
+            "_id": str(doc_id),
+            "doc": doc_source,
         }
 
     ###
@@ -90,10 +87,10 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             _subname: dataclasses.asdict(_def)
             for _subname, _def in cls.current_index_defs().items()
         }
-        if set(_current_json.keys()) == {''}:
-            _current_json = _current_json['']
+        if set(_current_json.keys()) == {""}:
+            _current_json = _current_json[""]
         return ChecksumIri.digest_json(
-            checksumalgorithm_name='sha-256',
+            checksumalgorithm_name="sha-256",
             salt=cls.__name__,
             raw_json=_current_json,  # type: ignore[arg-type]
         )
@@ -112,8 +109,8 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     @classmethod
     @functools.cache
     def _get_elastic8_client(cls) -> elasticsearch8.Elasticsearch:
-        should_sniff = settings.ELASTICSEARCH['SNIFF']
-        timeout = settings.ELASTICSEARCH['TIMEOUT']
+        should_sniff = settings.ELASTICSEARCH["SNIFF"]
+        timeout = settings.ELASTICSEARCH["TIMEOUT"]
         return elasticsearch8.Elasticsearch(
             hosts=settings.ELASTICSEARCH8_URL,
             ssl_assert_hostname=settings.ELASTICSEARCH8_ASSERT_HOSTNAME,
@@ -142,14 +139,12 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     # abstract method from IndexStrategy
     def each_existing_index(self, *, any_strategy_check: bool = False):
         _index_wildcard = (
-            combine_indexname_parts(self.strategy_name, '*')
+            combine_indexname_parts(self.strategy_name, "*")
             if any_strategy_check
             else self.indexname_wildcard
         )
         indexname_set = set(
-            self.es8_client.indices
-            .get(index=_index_wildcard, features=',')
-            .keys()
+            self.es8_client.indices.get(index=_index_wildcard, features=",").keys()
         )
         for indexname in indexname_set:
             _index = self.parse_full_index_name(indexname)
@@ -170,22 +165,24 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             self.es8_client,
             self._elastic_actions_with_index(messages_chunk, _action_tracker),
             raise_on_error=False,
-            max_retries=settings.ELASTICSEARCH['MAX_RETRIES'],
+            max_retries=settings.ELASTICSEARCH["MAX_RETRIES"],
         )
         _affected_indexnames: set[str] = set()
-        for (_ok, _response) in _bulk_stream:
-            (_op_type, _response_body) = next(iter(_response.items()))
-            _status = _response_body.get('status')
-            _docid = _response_body['_id']
-            _indexname = _response_body['_index']
+        for _ok, _response in _bulk_stream:
+            _op_type, _response_body = next(iter(_response.items()))
+            _status = _response_body.get("status")
+            _docid = _response_body["_id"]
+            _indexname = _response_body["_index"]
             _affected_indexnames.add(_indexname)
-            _is_done = _ok or (_op_type == 'delete' and _status == 404)
+            _is_done = _ok or (_op_type == "delete" and _status == 404)
             if _is_done:
                 _finished_message_id = _action_tracker.action_done(_indexname, _docid)
                 if _finished_message_id is not None:
                     yield messages.IndexMessageResponse(
                         is_done=True,
-                        index_message=messages.IndexMessage(messages_chunk.message_type, _finished_message_id),
+                        index_message=messages.IndexMessage(
+                            messages_chunk.message_type, _finished_message_id
+                        ),
                         status_code=HTTPStatus.OK.value,
                         error_text=None,
                     )
@@ -204,7 +201,9 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         for _message_id in _action_tracker.remaining_done_messages():
             yield messages.IndexMessageResponse(
                 is_done=True,
-                index_message=messages.IndexMessage(messages_chunk.message_type, _message_id),
+                index_message=messages.IndexMessage(
+                    messages_chunk.message_type, _message_id
+                ),
                 status_code=HTTPStatus.OK.value,
                 error_text=None,
             )
@@ -221,20 +220,24 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     def pls_get_default_for_searching(self) -> IndexStrategy | None:
         _searchnames = self._get_indexnames_for_alias(self._alias_for_searching)
         try:
-            (_indexname, *_) = _searchnames
+            _indexname, *_ = _searchnames
         except ValueError:
             return None  # no default set
-        (_strategyname, _strategycheck, *_) = parse_indexname_parts(_indexname)
+        _strategyname, _strategycheck, *_ = parse_indexname_parts(_indexname)
         assert _strategyname == self.strategy_name
-        _strategycheck = _strategycheck.rstrip('*')  # may be a wildcard alias
+        _strategycheck = _strategycheck.rstrip("*")  # may be a wildcard alias
         return self.with_strategy_check(_strategycheck)
 
     # abstract method from IndexStrategy
-    def pls_handle_search__passthru(self, request_body=None, request_queryparams=None) -> dict:
+    def pls_handle_search__passthru(
+        self, request_body=None, request_queryparams=None
+    ) -> dict:
         _queryparams = request_queryparams or {}
-        _requested_strategy = _queryparams.pop('indexStrategy', '')
+        _requested_strategy = _queryparams.pop("indexStrategy", "")
         _indexname = self.indexname_wildcard
-        if _requested_strategy and _requested_strategy.startswith(self.indexname_prefix):
+        if _requested_strategy and _requested_strategy.startswith(
+            self.indexname_prefix
+        ):
             _index = self.parse_full_index_name(_requested_strategy)
             if _index.has_valid_subname:
                 _indexname = _index.full_index_name
@@ -242,7 +245,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             index=_indexname,
             body={
                 **(request_body or {}),
-                'track_total_hits': True,
+                "track_total_hits": True,
             },
             params=(request_queryparams or {}),
         )
@@ -250,16 +253,16 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     # override from IndexStrategy
     def pls_refresh(self):
         super().pls_refresh()  # refreshes each index
-        logger.debug('%s: Waiting for yellow status', self.strategy_name)
-        self.es8_client.cluster.health(wait_for_status='yellow')
+        logger.debug("%s: Waiting for yellow status", self.strategy_name)
+        self.es8_client.cluster.health(wait_for_status="yellow")
 
     @property
     def _alias_for_searching(self):
-        return combine_indexname_parts(self.strategy_name, 'search')
+        return combine_indexname_parts(self.strategy_name, "search")
 
     @property
     def _alias_for_keeping_live(self):
-        return combine_indexname_parts(self.strategy_name, 'live')
+        return combine_indexname_parts(self.strategy_name, "live")
 
     def _elastic_actions_with_index(
         self,
@@ -267,20 +270,27 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         action_tracker: _ActionTracker,
     ):
         for _actionset in self.build_elastic_actions(messages_chunk):
-            for _index_subname, _elastic_actions in _actionset.actions_by_subname.items():
+            for (
+                _index_subname,
+                _elastic_actions,
+            ) in _actionset.actions_by_subname.items():
                 _indexnames = self._get_indexnames_for_action(
                     index_subname=_index_subname,
                     is_backfill_action=messages_chunk.message_type.is_backfill,
                 )
                 for _elastic_action in _elastic_actions:
-                    _docid = _elastic_action['_id']
+                    _docid = _elastic_action["_id"]
                     for _indexname in _indexnames:
-                        action_tracker.add_action(_actionset.message_target_id, _indexname, _docid)
+                        action_tracker.add_action(
+                            _actionset.message_target_id, _indexname, _docid
+                        )
                         _elastic_action_with_index = {
                             **_elastic_action,
-                            '_index': _indexname,
+                            "_index": _indexname,
                         }
-                        logger.debug('%s: elastic action: %r', self, _elastic_action_with_index)
+                        logger.debug(
+                            "%s: elastic action: %r", self, _elastic_action_with_index
+                        )
                         yield _elastic_action_with_index
             action_tracker.done_scheduling(_actionset.message_target_id)
 
@@ -306,34 +316,44 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             return set()
 
     def _add_indexname_to_alias(self, alias_name, indexname):
-        self.es8_client.indices.update_aliases(actions=[
-            {'add': {'index': indexname, 'alias': alias_name}},
-        ])
+        self.es8_client.indices.update_aliases(
+            actions=[
+                {"add": {"index": indexname, "alias": alias_name}},
+            ]
+        )
 
     def _remove_indexname_from_alias(self, alias_name, indexname):
-        self.es8_client.indices.update_aliases(actions=[
-            {'remove': {'index': indexname, 'alias': alias_name}},
-        ])
+        self.es8_client.indices.update_aliases(
+            actions=[
+                {"remove": {"index": indexname, "alias": alias_name}},
+            ]
+        )
 
     def _set_indexnames_for_alias(self, alias_name, indexnames):
         already_aliased = self._get_indexnames_for_alias(alias_name)
         want_aliased = set(indexnames)
         if already_aliased == want_aliased:
-            logger.info(f'alias "{alias_name}" already correct ({want_aliased}), doing nothing')
+            logger.info(
+                f'alias "{alias_name}" already correct ({want_aliased}), doing nothing'
+            )
         else:
             to_remove = tuple(already_aliased - want_aliased)
             to_add = tuple(want_aliased - already_aliased)
-            logger.warning(f'alias "{alias_name}": removing indexes {to_remove} and adding indexes {to_add}')
-            self.es8_client.indices.update_aliases(actions=[
-                *(
-                    {'remove': {'index': indexname, 'alias': alias_name}}
-                    for indexname in to_remove
-                ),
-                *(
-                    {'add': {'index': indexname, 'alias': alias_name}}
-                    for indexname in to_add
-                ),
-            ])
+            logger.warning(
+                f'alias "{alias_name}": removing indexes {to_remove} and adding indexes {to_add}'
+            )
+            self.es8_client.indices.update_aliases(
+                actions=[
+                    *(
+                        {"remove": {"index": indexname, "alias": alias_name}}
+                        for indexname in to_remove
+                    ),
+                    *(
+                        {"add": {"index": indexname, "alias": alias_name}}
+                        for indexname in to_add
+                    ),
+                ]
+            )
 
     @dataclasses.dataclass
     class SpecificIndex(IndexStrategy.SpecificIndex):
@@ -351,28 +371,23 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
                     specific_indexname=self.full_index_name,
                     is_kept_live=False,
                     doc_count=0,
-                    creation_date='',
+                    creation_date="",
                 )
-            index_info = (
-                self.index_strategy.es8_client.indices
-                .get(index=self.full_index_name, features='aliases,settings')
-                [self.full_index_name]
-            )
-            index_aliases = set(index_info['aliases'].keys())
+            index_info = self.index_strategy.es8_client.indices.get(
+                index=self.full_index_name, features="aliases,settings"
+            )[self.full_index_name]
+            index_aliases = set(index_info["aliases"].keys())
             creation_date = timestamp_to_readable_datetime(
-                index_info['settings']['index']['creation_date']
+                index_info["settings"]["index"]["creation_date"]
             )
-            doc_count = (
-                self.index_strategy.es8_client.indices
-                .stats(index=self.full_index_name, metric='docs')
-                ['indices'][self.full_index_name]['primaries']['docs']['count']
-            )
+            doc_count = self.index_strategy.es8_client.indices.stats(
+                index=self.full_index_name, metric="docs"
+            )["indices"][self.full_index_name]["primaries"]["docs"]["count"]
             return IndexStatus(
                 index_subname=self.subname,
                 specific_indexname=self.full_index_name,
                 is_kept_live=(
-                    self.index_strategy._alias_for_keeping_live
-                    in index_aliases
+                    self.index_strategy._alias_for_keeping_live in index_aliases
                 ),
                 creation_date=creation_date,
                 doc_count=doc_count,
@@ -382,33 +397,26 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         def pls_check_exists(self):
             _indexname = self.full_index_name
             _result = bool(
-                self.index_strategy.es8_client.indices
-                .exists(index=_indexname)
+                self.index_strategy.es8_client.indices.exists(index=_indexname)
             )
             logger.info(
-                f'{_indexname}: exists'
-                if _result
-                else f'{_indexname}: does not exist'
+                f"{_indexname}: exists" if _result else f"{_indexname}: does not exist"
             )
             return _result
 
         # abstract method from IndexStrategy.SpecificIndex
         def pls_create(self):
-            assert self.is_current, (
-                'cannot create a non-current version of an index!'
-            )
+            assert self.is_current, "cannot create a non-current version of an index!"
             index_to_create = self.full_index_name
-            logger.debug('Ensuring index %s', index_to_create)
-            index_exists = (
-                self.index_strategy.es8_client.indices
-                .exists(index=index_to_create)
+            logger.debug("Ensuring index %s", index_to_create)
+            index_exists = self.index_strategy.es8_client.indices.exists(
+                index=index_to_create
             )
             if not index_exists:
-                logger.info('Creating index %s', index_to_create)
+                logger.info("Creating index %s", index_to_create)
                 _index_def = self.index_def
                 (
-                    self.index_strategy.es8_client.indices
-                    .create(
+                    self.index_strategy.es8_client.indices.create(
                         index=index_to_create,
                         settings=_index_def.settings,
                         mappings=_index_def.mappings,
@@ -419,20 +427,18 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         # abstract method from IndexStrategy.SpecificIndex
         def pls_refresh(self):
             _indexname = self.full_index_name
-            (
-                self.index_strategy.es8_client.indices
-                .refresh(index=_indexname)
-            )
-            logger.info('%s: Refreshed', _indexname)
+            (self.index_strategy.es8_client.indices.refresh(index=_indexname))
+            logger.info("%s: Refreshed", _indexname)
 
         # abstract method from IndexStrategy.SpecificIndex
         def pls_delete(self):
             _indexname = self.full_index_name
             (
-                self.index_strategy.es8_client.indices
-                .delete(index=_indexname, ignore=[400, 404])
+                self.index_strategy.es8_client.indices.delete(
+                    index=_indexname, ignore=[400, 404]
+                )
             )
-            logger.warning('%s: deleted', _indexname)
+            logger.warning("%s: deleted", _indexname)
 
         # abstract method from IndexStrategy.SpecificIndex
         def pls_start_keeping_live(self):
@@ -440,7 +446,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
                 indexname=self.full_index_name,
                 alias_name=self.index_strategy._alias_for_keeping_live,
             )
-            logger.info('%r: now kept live', self)
+            logger.info("%r: now kept live", self)
 
         # abstract method from IndexStrategy.SpecificIndex
         def pls_stop_keeping_live(self):
@@ -448,10 +454,12 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
                 indexname=self.full_index_name,
                 alias_name=self.index_strategy._alias_for_keeping_live,
             )
-            logger.warning('%r: no longer kept live', self)
+            logger.warning("%r: no longer kept live", self)
 
         def pls_get_mappings(self):
-            return self.index_strategy.es8_client.indices.get_mapping(index=self.full_index_name).body
+            return self.index_strategy.es8_client.indices.get_mapping(
+                index=self.full_index_name
+            ).body
 
 
 @dataclasses.dataclass
@@ -474,7 +482,8 @@ class _ActionTracker:
         # return the message id only if this was the last action for that message
         return (
             None
-            if _remaining_message_actions or (_messageid not in self.fully_scheduled_messageids)
+            if _remaining_message_actions
+            or (_messageid not in self.fully_scheduled_messageids)
             else _messageid
         )
 
