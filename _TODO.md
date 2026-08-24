@@ -30,6 +30,6 @@ see docstrings in `src/django_shtrove/**.py` for more plans/details
 - util from SHARE
 - shtrove tests (non-django)
 - entrypoints for strategies: extract, store, derive, render, index
-- use entry-points to register/discover indexing strategy implementations
+- use entry-points to register/discover indexing strategy imps
     - replace static share.search.index_strategy._AvailableStrategies
     - see https://packaging.python.org/en/latest/guides/creating-and-discovering-plugins/#using-package-metadata
