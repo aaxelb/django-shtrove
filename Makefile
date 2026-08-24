@@ -1,7 +1,7 @@
 SRC=src
 
-.PHONY=test lint type format clean
-.SILENT=test lint type
+.PHONY=ci test shtrove_test django_shtrove_test lint type format format_check clean
+.SILENT=lint type
 IN_VENV=. .venv/bin/activate;
 
 default: format lint type test

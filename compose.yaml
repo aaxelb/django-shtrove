@@ -20,7 +20,7 @@ services:
         FROM python:3.13-trixie AS shtrove_base
         RUN pip install "django==5.2.*"
         WORKDIR /code
-    command: make test lint type
+    command: make
     depends_on:
       postgres: {}
       elasticsearch8:
