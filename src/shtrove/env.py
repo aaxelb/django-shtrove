@@ -12,11 +12,8 @@ def parse_list(env_value: str, *, delimiter: str = ",") -> list[str]:
     >>> parse_list('')
     []
     """
-    return [
-        _list_entry := _segment.strip()
-        for _segment in env_value.split(delimiter)
-        if _list_entry
-    ]
+    _each_segment = (_segment.strip() for _segment in env_value.split(delimiter))
+    return list(filter(None, _each_segment))
 
 
 # one or more available extract strategies

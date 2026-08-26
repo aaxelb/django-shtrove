@@ -15,12 +15,16 @@ for common dev commands
 - commands:
     - `make format`: auto-format the code -- updates files in-place
     - `make lint`: check the code for detectable errors (format, syntax, undefined or unused names, type-checking, ...) -- does not update files
-    - `make test`: run all test suites
+    - `make test`: run all test suites (note: may expect some services running?)
     - `make clean`: delete the virtual environment at `.venv/`
     - `make check`: same as `make lint test`
     - `make` (default): same as `make format lint test` -- recommended before committing (will autoformat code)
 
-some tests assume other services running (TODO: document assumptions) -- `compose.yaml` 
+some django_shtrove tests assume other services running -- the included `compose.yaml` gives one way to
+set this up using any (docker-)[compose-like tool](https://compose-spec.io/)
+
+if you have a compose tool named `pc`, for example:
+- `pc run shtrove_testbox` should set up services (postgres and elasticsearch) and run `make check`
 
 ## code conventions
 - each module should have its outward interface listed in `__all__`
@@ -30,10 +34,10 @@ some tests assume other services running (TODO: document assumptions) -- `compos
     - second line: empty
     - rest: explanation of what it does with doctest examples
 - begin names with `_` (underscore) for:
-    - all local variables
+    - all local variables (and then consider how much this eases reading even your own code)
     - anything less-than-enthusiastically public
 - use accurate type annotations everywhere reasonably feasible
+    - defaults to strict type-linting (using `mypy`), but may loosen with
+      module-specific config in `mypy.ini`
     - use duck-types from `collections.abc` -- `import collections.abc as _abc`
-    - configured for strict type-linting (with `mypy`), but may loosen with
-      module-specific exceptions in `mypy.ini`
 - ... (TODO)

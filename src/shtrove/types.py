@@ -6,10 +6,7 @@ import typing
 import uuid
 
 from shtrove.extract.types import ProtoExtract
-from shtrove.persist.types import (
-    ProtoPersist,
-    ProtoCatalogRecord,
-)
+from shtrove.persist.types import ProtoPersist, ProtoCatalogRecord
 from shtrove.derive.types import ProtoDerive
 from shtrove.index.types import ProtoIndex
 from shtrove.render.types import ProtoRender
@@ -43,7 +40,7 @@ class ProtoExpelReturn(typing.Protocol):
 
 
 class ProtoPagedReturn[T](typing.Protocol):
-    items: list[T]
+    items: _abc.Sequence[T]
     cursor: ProtoPageCursor
 
     def __next__(self) -> typing.Self:

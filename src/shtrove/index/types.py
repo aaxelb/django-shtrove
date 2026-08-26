@@ -8,18 +8,16 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.persist.types import (
-    ProtoCatalogRecord,
-    ProtoCombinedMetadata,
-)
+from shtrove.persist.types import ProtoCombinedMetadata
+from shtrove.types import ProtoPagedReturn
 from shtrove.util.propertypath import Propertypath
 
 __all__ = (
     "ProtoIndex",
     "ProtoRecordsearchArgs",
-    "ProtoRecordsearchHandle",
+    "ProtoRecordsearchReturn",
     "ProtoValuesearchArgs",
-    "ProtoValuesearchHandle",
+    "ProtoValuesearchReturn",
 )
 
 
@@ -37,11 +35,11 @@ class ProtoIndex(typing.Protocol):
     # searching
     def handle_recordsearch(
         self, recordsearch_args: ProtoRecordsearchArgs
-    ) -> ProtoRecordsearchHandle: ...
+    ) -> ProtoRecordsearchReturn: ...
 
     def handle_valuesearch(
         self, valuesearch_args: ProtoValuesearchArgs
-    ) -> ProtoValuesearchHandle: ...
+    ) -> ProtoValuesearchReturn: ...
 
 
 ###
@@ -54,11 +52,14 @@ class ProtoRecordsearchArgs(typing.Protocol): ...  # TODO
 class ProtoValuesearchArgs(typing.Protocol): ...  # TODO
 
 
-class ProtoValuesearchHandle(ProtoResponseHandle, typing.Protocol):
+type ProtoValuesearchMatch = ProtoValuesearchIriMatch | ProtoValuesearchDateMatch
+
+
+class ProtoValuesearchReturn(ProtoPagedReturn[ProtoValuesearchMatch], typing.Protocol):
     recordsearch_args: ProtoRecordsearchArgs
     valuesearch_args: ProtoValuesearchArgs
     total_match_count: rdf.Literal
-    match_sample: _abc.Iterable[ProtoValuesearchIriMatch | ProtoValuesearchDateMatch]
+    items: _abc.Sequence[ProtoValuesearchMatch]  # inherited from ProtoPagedReturn
 
 
 class ProtoRecordsearchMatch(typing.Protocol):
@@ -66,7 +67,9 @@ class ProtoRecordsearchMatch(typing.Protocol):
     text_match_evidence: _abc.Iterable[ProtoTextMatchEvidence]
 
 
-class ProtoRecordsearchHandle(typing.Protocol, ProtoPagedResult[ProtoRecordsearchMatch]):
+class ProtoRecordsearchReturn(
+    ProtoPagedReturn[ProtoRecordsearchMatch], typing.Protocol
+):
     recordsearch_args: ProtoRecordsearchArgs
     total_match_count: rdf.Literal
     match_sample: _abc.Iterable[ProtoRecordsearchMatch]
@@ -93,5 +96,5 @@ class ProtoValuesearchDateMatch(typing.Protocol):
 
 
 class ProtoPropertypathUsage(typing.Protocol):
-    path: PropertyPath
+    path: Propertypath
     usage_count: rdf.Literal

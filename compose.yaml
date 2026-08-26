@@ -20,9 +20,9 @@ services:
         FROM python:3.13-trixie AS shtrove_base
         RUN pip install "django==5.2.*"
         WORKDIR /code
-    command: make
+    command: make check
     depends_on:
-      postgres: {}
+      postgres18: {}
       elasticsearch8:
         condition: service_healthy
     environment:
@@ -42,12 +42,10 @@ services:
     ports:
       - 8003:8000
     depends_on:
-      postgres: {}
-      rabbitmq: {}
+      postgres18: {}
       elasticsearch8:
         condition: service_healthy
     environment:
-      # TOXENV: py310-django42
       ELASTICSEARCH8_URL: http://elasticsearch8:9200
     volumes:
       - ./:/code:cached  # changes to local code will reload server
@@ -55,7 +53,7 @@ services:
   ###
   # other services
 
-  postgres:
+  postgres18:
     image: postgres:18
     environment:
       POSTGRES_DB: shtrove

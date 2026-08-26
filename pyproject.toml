@@ -9,7 +9,8 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     # TODO: consider moving src/shtrove/ to separate "shtrove==0.1.0",
-    "primitive_metadata==0.2025.1",  # MIT
+    "primitive_metadata @ git+https://github.com/aaxelb/primitive_metadata.git@0.2026.0",
+    # "primitive_metadata==0.2026.0",  # MIT
     "rdflib==7.6.0",  # BSD 3 Clause
 ]
 classifiers = [
@@ -43,6 +44,10 @@ ShtrovesearchJsonRender = "shtrove.render.shtrovesearch_json:ShtrovesearchJsonRe
 # TODO: DjangoShtrove = "django_shtrove...
 # TODO: basic shtrove using only filetree, no database or django?
 
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
 [dependency-groups]
 lint = [
   'flake8',
@@ -59,10 +64,6 @@ packages = [
   {include = "shtrove", from = "src"},
 ]
 
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 # [tool.coverage.run]
 # source = ['src']
 # branch = true
@@ -71,6 +72,6 @@ build-backend = "poetry.core.masonry.api"
 # skip_covered = true
 # show_missing = true
 
-[tool.mypy]
-strict = true
-exclude_gitignore = true
+[tool.black]
+#line-length = 72
+target-version = ["py312", "py313", "py314", "py315"]

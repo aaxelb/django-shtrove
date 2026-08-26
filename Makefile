@@ -17,10 +17,10 @@ django_shtrove_test: .venv/devdeps-up-to-date
 	$(IN_VENV)python src/django_shtrove/manage.py test --failfast
 
 format: .venv/devdeps-up-to-date
-	$(IN_VENV)python -m black $(SRC)
+	$(IN_VENV)python -m black --config pyproject.toml $(SRC)
 
 lint: .venv/devdeps-up-to-date
-	$(IN_VENV)python -m black --check $(SRC)
+	$(IN_VENV)python -m black --config pyproject.toml --check $(SRC)
 	$(IN_VENV)python -m flake8 $(SRC)
 	$(IN_VENV)python -m mypy $(SRC)
 
