@@ -58,7 +58,9 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
         return load_each_entry_point("shtrove.render")
 
     @functools.cached_property
-    def _render_types_by_mediatype(self) -> _abc.Mapping[str, type[shtrove.types.ProtoRender]]:
+    def _render_types_by_mediatype(
+        self,
+    ) -> _abc.Mapping[str, type[shtrove.types.ProtoRender]]:
         _by_mediatype = {}
         for _render_type in self._each_render_type():
             _mediatype = _render_type.mediatype()

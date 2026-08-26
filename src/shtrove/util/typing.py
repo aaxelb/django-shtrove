@@ -22,8 +22,10 @@ def implements(given_type: _T) -> NoopDecorator[_T]:
     ...     def __contains__(self, item):
     ...         return True  # contains all
     """
+
     def _decorator(given_obj: _T) -> _T:
         return given_obj
+
     return _decorator
 
 
@@ -38,11 +40,13 @@ if __debug__:  # for static checking only
 
         def blarg(self) -> str: ...
 
-    @implements(_MyProto)  # no type errors -- but would if type annotations were incompatible
+    @implements(
+        _MyProto
+    )  # no type errors -- but would if type annotations were incompatible
     @dataclasses.dataclass
     class _MyContainer:
         foo: int
         bar: int
 
         def blarg(self) -> str:
-            return 'blarg'
+            return "blarg"

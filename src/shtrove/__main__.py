@@ -58,11 +58,7 @@ def ingest_cmd(
 ) -> None:
     """ingest: extract + derive + persist + index"""
     # TODO: protections? do NOT use as-is with untrusted args
-    _input_stream = (
-        open(input_file)
-        if input_file
-        else sys.stdin
-    )
+    _input_stream = open(input_file) if input_file else sys.stdin
     try:
         get_shtrove_strategy(...).ingest(
             focus_iri=focus_iri,

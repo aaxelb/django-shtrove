@@ -1,10 +1,8 @@
-"""utilities for file input/output
-"""
+"""utilities for file input/output"""
+
 import collections.abc as _abc
 
-__all__ = (
-    'stream_file',
-)
+__all__ = ("stream_file",)
 
 
 def stream_file(filename: str) -> _abc.Iterator[str]:

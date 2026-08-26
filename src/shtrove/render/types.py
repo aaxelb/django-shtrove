@@ -1,8 +1,9 @@
 """shtrove.render.types: interface for rendering shtrove api responses"""
+
 __all__ = (
-    'ProtoRender',
-    'ProtoRendering',
-    'RenderingFlags',
+    "ProtoRender",
+    "ProtoRendering",
+    "RenderingFlags",
 )
 
 import collections.abc as _abc

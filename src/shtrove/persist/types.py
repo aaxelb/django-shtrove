@@ -1,4 +1,5 @@
 """shtrove.derive.types: interface for deriving a specific representation of a metadata record"""
+
 from __future__ import annotations
 
 __all__ = (
