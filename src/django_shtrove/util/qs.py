@@ -1,7 +1,7 @@
 """utilities for working with django querysets"""
 
 from __future__ import annotations
-from collections.abc import Generator
+import collections.abc as _abc
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 __all__ = ("pk_chunked",)
 
 
-def pk_chunked(queryset: QuerySet, chunksize: int) -> Generator[list]:
+def pk_chunked(queryset: QuerySet[_T], chunksize: int) -> Generator[list[_T]]:
     """pk_chunked: get primary key values, in chunks, for the given queryset
 
     yields non-empty lists of primary keys up to `chunksize` long

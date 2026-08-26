@@ -63,11 +63,6 @@ services:
     volumes:
       - postgres_data_vol:/var/lib/postgresql/data/
 
-  rabbitmq:
-    image: rabbitmq:3.8-management
-    volumes:
-      - rabbitmq_vol:/var/lib/rabbitmq
-
   elasticsearch8:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.19.19
     environment:
