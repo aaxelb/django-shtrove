@@ -1,12 +1,17 @@
-from shtrove.types import ProtoShtrove
+import collections.abc as _abc
+import dataclasses
+import functools
+
+import shtrove.types
+from shtrove.util.entry_points import load_each_entry_point
 
 
 @dataclasses.dataclass
-class BasicShtrove(ProtoShtrove):
+class BasicShtrove(shtrove.types.ProtoShtrove):
     ###
     # for ProtoShtrove
 
-    def way_to_extract(self, mediatype: str) -> ProtoExtract:
+    def way_to_extract(self, mediatype: str) -> shtrove.types.ProtoExtract:
         # TODO: better handle errors, init args, mediatype collisions
         return next(
             _extract_type()
@@ -14,24 +19,24 @@ class BasicShtrove(ProtoShtrove):
             if _extract_type.accepts(mediatype)
         )
 
-    def way_to_persist(self) -> ProtoPersist:
+    def way_to_persist(self) -> shtrove.types.ProtoPersist:
         # TODO: basic persist (without database) -- write to files?
         raise NotImplementedError("no basic persist exists")
 
-    def each_way_to_derive(self) -> cabc.Iterator[ProtoDerive]:
+    def each_way_to_derive(self) -> _abc.Iterator[shtrove.types.ProtoDerive]:
         # TODO: handle errors, init args
         for _derive_type in self._each_derive_type():
             yield _derive_type()
 
-    def each_way_to_index(self) -> cabc.Iterator[ProtoIndex]:
+    def each_way_to_index(self) -> _abc.Iterator[shtrove.types.ProtoIndex]:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic index exists")
 
-    def way_to_search(self, name: str = "") -> ProtoIndex:
+    def way_to_search(self, name: str = "") -> shtrove.types.ProtoIndex:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic search index exists")
 
-    def way_to_render(self, accepting: cabc.Sequence[str]) -> ProtoRender:
+    def way_to_render(self, accepting: _abc.Sequence[str]) -> shtrove.types.ProtoRender:
         # TODO: better handle errors, init args, mediatype params, `Accept` header semantics...
         return next(
             self._render_types_by_mediatype[_mediatype]()
@@ -43,17 +48,17 @@ class BasicShtrove(ProtoShtrove):
     # loading entrypoints
     # (TODO: should these be cached? is accessing package metadata slow?)
 
-    def _each_extract_type(self) -> cabc.Iterable[type[ProtoExtract]]:
+    def _each_extract_type(self) -> _abc.Iterable[type[shtrove.types.ProtoExtract]]:
         return load_each_entry_point("shtrove.extract")
 
-    def _each_derive_type(self) -> cabc.Iterable[type[ProtoDerive]]:
+    def _each_derive_type(self) -> _abc.Iterable[type[shtrove.types.ProtoDerive]]:
         return load_each_entry_point("shtrove.derive")
 
-    def _each_render_type(self) -> cabc.Sequence[type[ProtoRender]]:
+    def _each_render_type(self) -> _abc.Sequence[type[shtrove.types.ProtoRender]]:
         return load_each_entry_point("shtrove.render")
 
     @functools.cached_property
-    def _render_types_by_mediatype(self) -> cabc.Mapping[str, type[ProtoRender]]:
+    def _render_types_by_mediatype(self) -> _abc.Mapping[str, type[shtrove.types.ProtoRender]]:
         _by_mediatype = {}
         for _render_type in self._each_render_type():
             _mediatype = _render_type.mediatype()
@@ -101,7 +106,7 @@ class BasicShtrove(ProtoShtrove):
         for _derive_strat in self.each_way_to_derive():
             _derived_metadatum = _derive_strat.derive(_combined_metadata)
             if _derived_metadatum is not None:
-                _persist_strat.store_derived_metadatum(derived_metadatum)
+                self.way_to_persist().store_derived_metadatum(_derived_metadatum)
         # index
         for _index_strat in self.each_way_to_index():
             _index_strat.set_item_metadata(_combined_metadata)

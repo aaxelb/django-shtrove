@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import defaultdict
-import collections.abc as cabc
+import collections.abc as _abc
 import dataclasses
 import typing
 import urllib.parse
@@ -25,7 +25,7 @@ class BasicTroveParams:
     iri_shorthand: rdf.IriShorthand = dataclasses.field(repr=False)
     accept_mediatype: str | None
     included_relations: PropertypathSet = dataclasses.field(repr=False, compare=False)
-    attrpaths_by_type: cabc.Mapping[str, tuple[Propertypath, ...]] = dataclasses.field(
+    attrpaths_by_type: _abc.Mapping[str, tuple[Propertypath, ...]] = dataclasses.field(
         repr=False,
         compare=False,
     )
@@ -65,7 +65,7 @@ class BasicTroveParams:
         return frozenset()
 
     @classmethod
-    def _default_attrpaths(cls) -> cabc.Mapping[str, tuple[Propertypath, ...]]:
+    def _default_attrpaths(cls) -> _abc.Mapping[str, tuple[Propertypath, ...]]:
         return {}
 
     @classmethod
@@ -104,7 +104,7 @@ class BasicTroveParams:
         cls,
         queryparams: _qp.QueryparamDict,
         shorthand: rdf.IriShorthand,
-    ) -> cabc.Mapping[
+    ) -> _abc.Mapping[
         str,
         tuple[Propertypath, ...],
     ]:
@@ -139,7 +139,7 @@ class BasicTroveParams:
     def to_querystring(self) -> str:
         return urllib.parse.urlencode(self.to_queryparams())
 
-    def to_queryparams(self) -> cabc.Sequence[tuple[str, str]]:
+    def to_queryparams(self) -> _abc.Sequence[tuple[str, str]]:
         # subclasses should override and add their fields to super().to_queryparams()
         _queryparams = []
         if self.accept_mediatype:

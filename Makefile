@@ -1,12 +1,12 @@
 SRC=src
 
-.PHONY=ci test shtrove_test django_shtrove_test lint type format format_check clean
+.PHONY=ci test shtrove_test django_shtrove_test lint type format clean
 .SILENT=lint type
 IN_VENV=. .venv/bin/activate;
 
 default: format lint type test
 
-ci: format_check lint type test
+ci: lint type test
 
 test: shtrove_test django_shtrove_test
 
@@ -18,15 +18,13 @@ django_shtrove_test: .venv/devdeps-up-to-date
 
 lint: .venv/devdeps-up-to-date
 	$(IN_VENV)python -m flake8 $(SRC)
+	$(IN_VENV)python -m black --check $(SRC)
 
 type: .venv/devdeps-up-to-date
 	$(IN_VENV)python -m mypy $(SRC)
 
 format: .venv/devdeps-up-to-date
 	$(IN_VENV)python -m black $(SRC)
-
-format_check: .venv/devdeps-up-to-date
-	$(IN_VENV)python -m black --check $(SRC)
 
 clean:
 	rm -r .venv

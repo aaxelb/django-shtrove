@@ -27,12 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 @dataclasses.dataclass(frozen=True)
-class IndexStrategy(abc.ABC):
+class ShareIndexStrategy(abc.ABC):
     """an abstraction for indexes in different places and ways.
 
     (NOTE: this was copied from SHARE -- worth reconsidering details)
 
-    the IndexStrategy abstract-base-class has:
+    the ShareIndexStrategy abstract-base-class has:
     * methods to observe and effect the lifecycles of a "search index"
       that is expected to evolve over time, aiming to ease migration
       and comparison across possible models and implementations
@@ -40,7 +40,7 @@ class IndexStrategy(abc.ABC):
     * abstract methods that must be implemented by each subclass
       (including on SpecificIndex, an abstract base class itself)
 
-    each IndexStrategy subclass:
+    each ShareIndexStrategy subclass:
     * encapsulates all interaction with a particular type of search-engine cluster
     * may know of version- or cluster-specific features
       (should include identifiers like version numbers in subclass name)
@@ -215,7 +215,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     @abc.abstractmethod
     def compute_strategy_checksum(self) -> ChecksumIri:
         """get a dict (json-serializable and thereby checksummable) of all
-        configuration held still by this IndexStrategy subclass -- changes
+        configuration held still by this ShareIndexStrategy subclass -- changes
         in the checksum may result in new indices being created and filled
         """
         raise NotImplementedError
@@ -258,7 +258,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         raise NotImplementedError
 
     @abc.abstractmethod
-    def pls_get_default_for_searching(self) -> IndexStrategy | None:
+    def pls_get_default_for_searching(self) -> ShareIndexStrategy | None:
         raise NotImplementedError
 
     ###
@@ -281,11 +281,11 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
             f"{self.__class__.__name__} does not implement pls_handle_search__passthru (either implement it or don't use this strategy for that)"
         )
 
-    # IndexStrategy.SpecificIndex must be implemented by subclasses
-    # in their own `class SpecificIndex(IndexStrategy.SpecificIndex)`
+    # ShareIndexStrategy.SpecificIndex must be implemented by subclasses
+    # in their own `class SpecificIndex(ShareIndexStrategy.SpecificIndex)`
     @dataclasses.dataclass
     class SpecificIndex(abc.ABC):
-        index_strategy: IndexStrategy
+        index_strategy: ShareIndexStrategy
         subname: str  # unique per index_strategy
 
         @property

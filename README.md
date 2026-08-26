@@ -15,9 +15,9 @@ a python package with abstract interfaces and basic tools for troving and sharin
 
 - defines types (python protocols) for clusters of metadata-catalog functionality:
     - `ProtoExtract`: parse rdf (meta)data from a digital document
-    - `ProtoPersist`: store (and browse) metadata as catalog records
-    - `ProtoIndex`: index (and search) metadata from catalog records
-    - `ProtoDerive`: serialize a catalog record following some metadata format
+    - `ProtoPersist`: store and browse (meta)data as catalog records
+    - `ProtoIndex`: index and search (meta)data from catalog records
+    - `ProtoDerive`: serialize a catalog record following some (meta)data format
     - `ProtoRender`: serialize a shtrove api response following some api standard
     - `ProtoShtrove`: tie the rest together with methods for ingest, browse, and search
 - basic imp(lamentation)s of some of those interfaces:

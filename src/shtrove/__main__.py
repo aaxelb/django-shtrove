@@ -1,4 +1,7 @@
 import argparse
+import sys
+
+from shtrove.types import ProtoShtrove
 
 
 def shtrove_argparser():
@@ -27,7 +30,7 @@ def shtrove_argparser():
 
     # browse <iri>
     _browse = _subparsers.add_parser("browse")
-    _browse.set_defaults(command_fn=delete_cmd)
+    _browse.set_defaults(command_fn=browse_cmd)
     _browse.add_argument("iri", default="")
 
     # search <query>
@@ -54,17 +57,42 @@ def ingest_cmd(
     urgent: bool = False,
 ) -> None:
     """ingest: extract + derive + persist + index"""
-    # TODO: input_document = ... (from input_file or stdin)
-    get_shtrove_strategy(...).ingest(
-        focus_iri,
-        input_mediatype,
-        input_document,
-        record_identifier,  # default focus_iri
-        is_supplementary,
-        # TODO: expiration_date: datetime.date | None = None,  # default "never"
-        restore_deleted,
-        urgent,
+    # TODO: protections? do NOT use as-is with untrusted args
+    _input_stream = (
+        open(input_file)
+        if input_file
+        else sys.stdin
     )
+    try:
+        get_shtrove_strategy(...).ingest(
+            focus_iri=focus_iri,
+            input_mediatype=input_mediatype,
+            input_stream=_input_stream,
+            record_identifier=record_iri,  # default focus_iri
+            is_supplementary=is_supplementary,
+            # TODO: expiration_date: datetime.date | None = None,  # default "never"
+            restore_deleted=restore_deleted,
+            urgent=urgent,
+        )
+    finally:
+        if input_file:
+            _input_stream.close()
+
+
+def get_shtrove_strategy(**kwargs) -> ProtoShtrove:
+    raise NotImplementedError
+
+
+def delete_cmd():
+    raise NotImplementedError
+
+
+def browse_cmd():
+    raise NotImplementedError
+
+
+def search_cmd():
+    raise NotImplementedError
 
 
 # TODO: delete_cmd

@@ -1,6 +1,7 @@
 from django.conf import settings
 
-from shtrove.basic import BasicShtroveStrategy
+from shtrove.basic import BasicShtrove
+from shtrove.util.entry_points import load_entry_point
 
 
 class DjangoShtroveStrategy(BasicShtroveStrategy):

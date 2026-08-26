@@ -12,7 +12,7 @@ from django.conf import settings
 import elasticsearch8
 from elasticsearch8.helpers import streaming_bulk
 
-from share.search.index_strategy._base import IndexStrategy
+from share.search.index_strategy._base import ShareIndexStrategy
 from share.search.index_status import IndexStatus
 from share.search import messages
 from share.search.index_strategy._util import timestamp_to_readable_datetime
@@ -80,7 +80,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     ###
     # implementation for subclasses to ignore
 
-    # abstract method from IndexStrategy
+    # abstract method from ShareIndexStrategy
     @classmethod
     def compute_strategy_checksum(cls):
         _current_json = {
@@ -95,7 +95,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             raw_json=_current_json,  # type: ignore[arg-type]
         )
 
-    # abstract method from IndexStrategy
+    # abstract method from ShareIndexStrategy
     @classmethod
     def each_index_subname(self) -> typing.Iterable[str]:
         yield from self.current_index_defs().keys()
@@ -136,7 +136,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     def es8_client(self):
         return self._get_elastic8_client()  # cached classmethod for shared client
 
-    # abstract method from IndexStrategy
+    # abstract method from ShareIndexStrategy
     def each_existing_index(self, *, any_strategy_check: bool = False):
         _index_wildcard = (
             combine_indexname_parts(self.strategy_name, "*")
@@ -157,7 +157,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             if any_strategy_check or (_index.index_strategy == self):
                 yield _index
 
-    # abstract method from IndexStrategy
+    # abstract method from ShareIndexStrategy
     def pls_handle_messages_chunk(self, messages_chunk):
         self.assert_message_type(messages_chunk.message_type)
         _action_tracker = _ActionTracker()
@@ -209,15 +209,15 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             )
         self.after_chunk(messages_chunk, _affected_indexnames)
 
-    # abstract method from IndexStrategy
+    # abstract method from ShareIndexStrategy
     def pls_make_default_for_searching(self):
         self._set_indexnames_for_alias(
             self._alias_for_searching,
             {self.indexname_wildcard},
         )
 
-    # abstract method from IndexStrategy
-    def pls_get_default_for_searching(self) -> IndexStrategy | None:
+    # abstract method from ShareIndexStrategy
+    def pls_get_default_for_searching(self) -> ShareIndexStrategy | None:
         _searchnames = self._get_indexnames_for_alias(self._alias_for_searching)
         try:
             _indexname, *_ = _searchnames
@@ -228,7 +228,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         _strategycheck = _strategycheck.rstrip("*")  # may be a wildcard alias
         return self.with_strategy_check(_strategycheck)
 
-    # abstract method from IndexStrategy
+    # abstract method from ShareIndexStrategy
     def pls_handle_search__passthru(
         self, request_body=None, request_queryparams=None
     ) -> dict:
@@ -250,7 +250,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             params=(request_queryparams or {}),
         )
 
-    # override from IndexStrategy
+    # override from ShareIndexStrategy
     def pls_refresh(self):
         super().pls_refresh()  # refreshes each index
         logger.debug("%s: Waiting for yellow status", self.strategy_name)
@@ -356,14 +356,14 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             )
 
     @dataclasses.dataclass
-    class SpecificIndex(IndexStrategy.SpecificIndex):
+    class SpecificIndex(ShareIndexStrategy.SpecificIndex):
         index_strategy: Elastic8IndexStrategy  # note: narrower type
 
         @property
         def index_def(self) -> Elastic8IndexStrategy.IndexDefinition:
             return self.index_strategy.current_index_defs()[self.subname]
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_get_status(self) -> IndexStatus:
             if not self.pls_check_exists():
                 return IndexStatus(
@@ -393,7 +393,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
                 doc_count=doc_count,
             )
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_check_exists(self):
             _indexname = self.full_index_name
             _result = bool(
@@ -404,7 +404,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             )
             return _result
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_create(self):
             assert self.is_current, "cannot create a non-current version of an index!"
             index_to_create = self.full_index_name
@@ -424,13 +424,13 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
                 )
                 self.pls_refresh()
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_refresh(self):
             _indexname = self.full_index_name
             (self.index_strategy.es8_client.indices.refresh(index=_indexname))
             logger.info("%s: Refreshed", _indexname)
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_delete(self):
             _indexname = self.full_index_name
             (
@@ -440,7 +440,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             )
             logger.warning("%s: deleted", _indexname)
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_start_keeping_live(self):
             self.index_strategy._add_indexname_to_alias(
                 indexname=self.full_index_name,
@@ -448,7 +448,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             )
             logger.info("%r: now kept live", self)
 
-        # abstract method from IndexStrategy.SpecificIndex
+        # abstract method from ShareIndexStrategy.SpecificIndex
         def pls_stop_keeping_live(self):
             self.index_strategy._remove_indexname_from_alias(
                 indexname=self.full_index_name,

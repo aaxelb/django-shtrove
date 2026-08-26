@@ -22,10 +22,10 @@ TurtleExtract = "shtrove.extract.basic:TurtleExtract"
 # TODO: jsonld =
 
 [project.entry-points."shtrove.ProtoPersist"]
-DjangoShtrovePersist = "django_shtrove.persist:DjangoShtrovePersist"
+DjangoShtrovePersist = "django_shtrove.shtrove_imps.persist:DjangoShtrovePersist"
 
 [project.entry-points."shtrove.ProtoIndex"]
-ShtrovesearchElastic8Index = "django_shtrove.index:ShtrovesearchElastic8Index"
+ShtrovesearchElastic8Index = "django_shtrove.shtrove_imps.index:ShtrovesearchElastic8Index"
 
 [project.entry-points."shtrove.ProtoDerive"]
 # TODO: oai_dc? datacite?

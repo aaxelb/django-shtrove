@@ -1,9 +1,20 @@
 """shtrove.derive.types: interface for deriving a specific representation of a metadata record"""
+from __future__ import annotations
 
+__all__ = (
+    "ProtoCatalogRecord",
+    "ProtoPersist",
+    "ProtoCombinedMetadata",
+)
+
+import collections.abc as cabc
+import datetime
 import typing
+import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
+from shtrove.derive.types import ProtoDerivedMetadatum
 from shtrove.extract.types import ProtoResourceMetadatum
 
 
@@ -34,15 +45,19 @@ class ProtoPersist(typing.Protocol):
     # browse by record uuid
 
     def get_record(self, record_uuid: uuid.UUID) -> ProtoCatalogRecord: ...
+
     def get_current_metadatum(
         self, record_uuid: uuid.UUID
     ) -> ProtoResourceMetadatum: ...
+
     def get_each_supplementary_metadatum(
         self, record_uuid: uuid.UUID
     ) -> cabc.Iterable[ProtoResourceMetadatum]: ...
+
     def get_each_archived_metadatum(
         self, record_uuid: uuid.UUID
     ) -> cabc.Iterable[ProtoResourceMetadatum]: ...
+
     def get_derived_metadatum(
         self, record_uuid: uuid.UUID, derived_datatype_iri: str
     ) -> ProtoDerivedMetadatum: ...
@@ -54,13 +69,10 @@ class ProtoPersist(typing.Protocol):
     # browse by focus iri
 
     def get_combined_metadata(self, focus_iri: str) -> ProtoCombinedMetadata: ...
+
     def get_each_record_by_focus(
         self, focus_iri: str
     ) -> cabc.Iterable[ProtoCatalogRecord]: ...
-
-
-###
-# input/output protocols
 
 
 class ProtoCatalogRecord(typing.Protocol):

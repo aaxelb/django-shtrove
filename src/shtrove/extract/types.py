@@ -1,15 +1,10 @@
 """shtrove.extract.types: abstract interface for extracting metadata from a type of document"""
 
+import collections.abc as cabc
+import datetime
 import typing
 
-
-class ProtoExtract(typing.Protocol):
-    @classmethod
-    def accepts(cls, mediatype: str) -> bool: ...
-
-    def extract(
-        self, input_document: str, *, focus_iri: str
-    ) -> ProtoResourceMetadatum: ...
+from primitive_metadata import primitive_rdf as rdf
 
 
 class ProtoResourceMetadatum(typing.Protocol):
@@ -18,3 +13,12 @@ class ProtoResourceMetadatum(typing.Protocol):
 
     # dcterms:created
     created: datetime.datetime
+
+
+class ProtoExtract(typing.Protocol):
+    @classmethod
+    def accepts(cls, mediatype: str) -> bool: ...
+
+    def extract(
+        self, input_stream: cabc.Iterable[str], *, focus_iri: str
+    ) -> ProtoResourceMetadatum: ...
