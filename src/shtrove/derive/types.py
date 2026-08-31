@@ -10,6 +10,7 @@ from primitive_metadata import primitive_rdf as rdf
 from shtrove.persist.types import ProtoCombinedMetadata
 
 
+@typing.runtime_checkable
 class ProtoDerive(typing.Protocol):
     def derive(
         self, upstream_metadata: _abc.Iterable[ProtoCombinedMetadata]

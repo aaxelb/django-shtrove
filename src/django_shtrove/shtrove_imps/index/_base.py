@@ -5,9 +5,7 @@ import functools
 import logging
 import typing
 
-from share.search import messages
-from share.models.index_backfill import IndexBackfill
-from share.search.exceptions import IndexStrategyError
+from shtrove.exceptions import ShtroveIndexError
 from share.search.index_status import (
     IndexStatus,
     StrategyStatus,
@@ -24,6 +22,10 @@ from trove.trovesearch.search_handle import (
 from . import _indexnames as indexnames
 
 logger = logging.getLogger(__name__)
+
+
+class _LegacyShareIndexStrategyError(ShtroveIndexError):
+    pass
 
 
 @dataclasses.dataclass(frozen=True)
@@ -94,16 +96,10 @@ class ShareIndexStrategy(abc.ABC):
     def is_current(self) -> bool:
         return self.strategy_check == self.CURRENT_STRATEGY_CHECKSUM.hexdigest
 
-    def assert_message_type(self, message_type: messages.MessageType):
-        if message_type not in self.supported_message_types:
-            raise IndexStrategyError(
-                f'Invalid message_type "{message_type}" (expected {self.supported_message_types})'
-            )
-
     def assert_strategy_is_current(self):
         actual_checksum = self.compute_strategy_checksum()
         if actual_checksum != self.CURRENT_STRATEGY_CHECKSUM:
-            raise IndexStrategyError(f"""
+            raise _LegacyShareIndexStrategyError(f"""
 Unconfirmed changes in {self.__class__.__qualname__}!
 
 If you made these changes on purpose, pls update {self.__class__.__qualname__} with:
@@ -123,11 +119,11 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         try:
             _strategy_name, _strategy_check, *_etc = _parts
         except ValueError:
-            raise IndexStrategyError(
+            raise _LegacyShareIndexStrategyError(
                 f'expected "strategyname__strategycheck", at least (got "{index_name}")'
             )
         if _strategy_name != self.strategy_name:
-            raise IndexStrategyError(
+            raise _LegacyShareIndexStrategyError(
                 f'this index belongs to another strategy (expected strategy name "{self.strategy_name}"; got "{_strategy_name}" from index name {index_name})'
             )
         _strategy = self.with_strategy_check(_strategy_check)
@@ -138,7 +134,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
 
     def pls_setup(self, *, skip_backfill=False) -> None:
         if not self.is_current:
-            raise IndexStrategyError("cannot setup a non-current strategy")
+            raise _LegacyShareIndexStrategyError("cannot setup a non-current strategy")
         for _index in self.each_subnamed_index():
             _index.pls_create()
             _index.pls_start_keeping_live()
@@ -151,12 +147,6 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     def pls_teardown(self) -> None:
         for _index in self.each_existing_index():
             _index.pls_delete()
-
-    def get_or_create_backfill(self):
-        index_backfill, _ = IndexBackfill.objects.get_or_create(
-            index_strategy_name=self.strategy_name,
-        )
-        return index_backfill
 
     def pls_start_backfill(self):
         self.get_or_create_backfill().pls_start(self)
@@ -225,16 +215,6 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     def each_index_subname(self) -> typing.Iterable[str]:
         raise NotImplementedError
 
-    @property
-    @abc.abstractmethod
-    def supported_message_types(self) -> typing.Iterable[messages.MessageType]:
-        raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
-    def backfill_message_type(self) -> messages.MessageType:
-        raise NotImplementedError
-
     @abc.abstractmethod
     def each_existing_index(
         self, *, any_strategy_check: bool = False
@@ -245,12 +225,6 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     def each_live_index(
         self, *, any_strategy_check: bool = False
     ) -> typing.Iterator[SpecificIndex]:
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def pls_handle_messages_chunk(
-        self, messages_chunk: messages.MessagesChunk
-    ) -> typing.Iterable[messages.IndexMessageResponse]:
         raise NotImplementedError
 
     @abc.abstractmethod

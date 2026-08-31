@@ -21,11 +21,13 @@ __all__ = (
 )
 
 
+@typing.runtime_checkable
 class ProtoIndex(typing.Protocol):
     ###
     # index lifecycle
     def do_setup(self) -> None: ...
     def do_teardown(self) -> None: ...
+    def each_index_status(self) -> _abc.Iterator[ProtoIndexStatus]: ...
 
     ###
     # adding/updating/removing metadata
@@ -43,13 +45,32 @@ class ProtoIndex(typing.Protocol):
 
 
 ###
+# index status
+
+
+class ProtoIndexStatus(typing.Protocol):
+    @property
+    def local_id(self) -> str: ...
+    @property
+    def creation_date(self) -> str | None: ...
+    @property
+    def record_count(self) -> int | None: ...
+
+
+###
 # search args
 
 
-class ProtoRecordsearchArgs(typing.Protocol): ...  # TODO
+class ProtoRecordsearchArgs(typing.Protocol):
+    ...  # TODO
+    @property
+    def cursor(self) -> ProtoPageCursor | None: ...
 
 
-class ProtoValuesearchArgs(typing.Protocol): ...  # TODO
+class ProtoValuesearchArgs(typing.Protocol):
+    ...  # TODO
+    @property
+    def cursor(self) -> ProtoPageCursor | None: ...
 
 
 type ProtoValuesearchMatch = ProtoValuesearchIriMatch | ProtoValuesearchDateMatch

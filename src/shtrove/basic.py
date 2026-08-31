@@ -1,12 +1,10 @@
 import collections.abc as _abc
-import dataclasses
 import functools
 
 import shtrove.types
 from shtrove.util.entry_points import load_each_entry_point
 
 
-@dataclasses.dataclass
 class BasicShtrove(shtrove.types.ProtoShtrove):
     ###
     # for ProtoShtrove
@@ -36,11 +34,13 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic search index exists")
 
-    def way_to_render(self, accepting: _abc.Sequence[str]) -> shtrove.types.ProtoRender:
+    def way_to_render(
+        self, accepts: _abc.Sequence[str] = ()
+    ) -> shtrove.types.ProtoRender:
         # TODO: better handle errors, init args, mediatype params, `Accept` header semantics...
         return next(
             self._render_types_by_mediatype[_mediatype]()
-            for _mediatype in accepting
+            for _mediatype in accepts
             if _mediatype in self._render_types_by_mediatype
         )
 
@@ -49,13 +49,13 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
     # (TODO: should these be cached? is accessing package metadata slow?)
 
     def _each_extract_type(self) -> _abc.Iterable[type[shtrove.types.ProtoExtract]]:
-        return load_each_entry_point("shtrove.extract")
+        return load_each_entry_point("shtrove.ProtoExtract", shtrove.types.ProtoExtract)
 
     def _each_derive_type(self) -> _abc.Iterable[type[shtrove.types.ProtoDerive]]:
-        return load_each_entry_point("shtrove.derive")
+        return load_each_entry_point("shtrove.ProtoDerive", shtrove.types.ProtoDerive)
 
-    def _each_render_type(self) -> _abc.Sequence[type[shtrove.types.ProtoRender]]:
-        return load_each_entry_point("shtrove.render")
+    def _each_render_type(self) -> _abc.Iterable[type[shtrove.types.ProtoRender]]:
+        return load_each_entry_point("shtrove.ProtoRender", shtrove.types.ProtoRender)
 
     @functools.cached_property
     def _render_types_by_mediatype(

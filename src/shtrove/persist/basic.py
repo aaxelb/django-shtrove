@@ -7,7 +7,7 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.extract.types import ProtoResourceMetadatum
+from shtrove.types.extract import ProtoResourceMetadatum
 from .types import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,

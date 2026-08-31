@@ -20,7 +20,7 @@ format: .venv/devdeps-up-to-date
 	$(IN_VENV)python -m black $(SRC)
 
 lint: .venv/devdeps-up-to-date
-	$(IN_VENV)python -m black --check $(SRC)
+	$(IN_VENV)python -m black --check --quiet $(SRC)
 	$(IN_VENV)python -m flake8 $(SRC)
 	$(IN_VENV)python -m mypy $(SRC)
 

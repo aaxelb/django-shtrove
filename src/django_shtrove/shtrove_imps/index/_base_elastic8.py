@@ -12,7 +12,7 @@ from django.conf import settings
 import elasticsearch8
 from elasticsearch8.helpers import streaming_bulk
 
-from share.search.index_strategy._base import ShareIndexStrategy
+from django_shtrove.shtrove_imps.index._base import ShareIndexStrategy
 from share.search.index_status import IndexStatus
 from share.search import messages
 from share.search.index_strategy._util import timestamp_to_readable_datetime

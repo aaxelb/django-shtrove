@@ -16,9 +16,10 @@ import uuid
 from primitive_metadata import primitive_rdf as rdf
 
 from shtrove.derive.types import ProtoDerivedMetadatum
-from shtrove.extract.types import ProtoResourceMetadatum
+from shtrove.types.extract import ProtoResourceMetadatum
 
 
+@typing.runtime_checkable
 class ProtoPersist(typing.Protocol):
     ###
     # ingest

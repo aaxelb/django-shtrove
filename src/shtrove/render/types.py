@@ -24,6 +24,7 @@ class ProtoRendering(typing.Protocol):
     def each_content_segment(self) -> _abc.Iterator[str] | _abc.Iterator[bytes]: ...
 
 
+@typing.runtime_checkable
 class ProtoRender(typing.Protocol):
     @classmethod
     def mediatype(self) -> str: ...

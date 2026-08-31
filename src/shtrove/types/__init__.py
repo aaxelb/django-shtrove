@@ -23,7 +23,7 @@ import uuid
 
 from primitive_metadata import gather
 
-from shtrove.extract.types import ProtoExtract
+from shtrove.types.extract import ProtoExtract
 from shtrove.persist.types import ProtoPersist, ProtoCatalogRecord
 from shtrove.derive.types import ProtoDerive
 from shtrove.index.types import ProtoIndex
@@ -43,7 +43,9 @@ class ProtoShtrove(typing.Protocol):
 
     def search_records(
         self,
-        args: ProtoRecordsearchArgs | None = None,
+        *,
+        cursor: ProtoPageCursor | None = None,
+        **kwargs,
     ) -> ProtoGatheredResponse: ...
     def search_values(
         self,

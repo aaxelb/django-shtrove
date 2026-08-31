@@ -2,7 +2,7 @@ import http
 import inspect
 
 
-class TroveError(Exception):
+class ShtroveError(Exception):
     # set more helpful codes in subclasses
     http_status: int = http.HTTPStatus.INTERNAL_SERVER_ERROR
     error_location: str = ""
@@ -24,10 +24,18 @@ class TroveError(Exception):
 
 
 ###
+# shtrove config
+
+
+class BadEntryPoint(ShtroveError):
+    pass
+
+
+###
 # digesting metadata
 
 
-class DigestiveError(TroveError):
+class DigestiveError(ShtroveError):
     pass
 
 
@@ -48,10 +56,17 @@ class CannotDigestExpiredDatum(DigestiveError):
 
 
 ###
+# shtrove.index errors
+
+class ShtroveIndexError(ShtroveError):
+    pass
+
+
+###
 # parsing a request
 
 
-class RequestParsingError(TroveError):
+class RequestParsingError(ShtroveError):
     http_status = http.HTTPStatus.BAD_REQUEST
 
 
@@ -103,7 +118,7 @@ class InvalidSort(RequestParsingError):
 # rendering a response
 
 
-class ResponseRenderingError(TroveError):
+class ResponseRenderingError(ShtroveError):
     pass
 
 
@@ -119,7 +134,7 @@ class CannotRenderStreamTwice(ResponseRenderingError):
 # primitive rdf
 
 
-class PrimitiveRdfWhoopsy(TroveError):
+class PrimitiveRdfWhoopsy(ShtroveError):
     pass
 
 

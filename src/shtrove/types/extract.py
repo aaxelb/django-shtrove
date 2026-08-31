@@ -1,4 +1,4 @@
-"""shtrove.extract.types: abstract interface for extracting metadata from a type of document"""
+"""shtrove.types.extract: abstract interface for extracting metadata from a type of document"""
 
 import collections.abc as cabc
 import datetime
@@ -15,6 +15,7 @@ class ProtoResourceMetadatum(typing.Protocol):
     created: datetime.datetime
 
 
+@typing.runtime_checkable
 class ProtoExtract(typing.Protocol):
     @classmethod
     def accepts(cls, mediatype: str) -> bool: ...

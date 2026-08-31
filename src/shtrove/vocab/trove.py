@@ -189,7 +189,9 @@ uses query parameter:
             rdf.blanknode(
                 {
                     RDFS.label: {rdf.literal("card-search-with-filter", language="en")},
-                    RDFS.comment: {rdf.literal("card-search with filter", language="en")},
+                    RDFS.comment: {
+                        rdf.literal("card-search with filter", language="en")
+                    },
                     DCTERMS.description: {
                         _literal_markdown(
                             """
@@ -239,7 +241,9 @@ uses query parameter:
             ),
             rdf.blanknode(
                 {
-                    RDFS.label: {rdf.literal("card-search-with-star-path", language="en")},
+                    RDFS.label: {
+                        rdf.literal("card-search-with-star-path", language="en")
+                    },
                     RDFS.comment: {
                         rdf.literal("card-search with star path", language="en")
                     },
@@ -309,7 +313,9 @@ uses query parameters:
         },
         RDFS.label: {rdf.literal("index-value-search", language="en")},
         RDFS.comment: {
-            rdf.literal("search for IRI values based on how they are used", language="en")
+            rdf.literal(
+                "search for IRI values based on how they are used", language="en"
+            )
         },
         DCTERMS.description: {
             _literal_markdown(
@@ -379,8 +385,12 @@ uses query parameter:
             ),
             rdf.blanknode(
                 {
-                    RDFS.label: {rdf.literal("value-search specific IRI", language="en")},
-                    RDFS.comment: {rdf.literal("value-search specific IRI", language="en")},
+                    RDFS.label: {
+                        rdf.literal("value-search specific IRI", language="en")
+                    },
+                    RDFS.comment: {
+                        rdf.literal("value-search specific IRI", language="en")
+                    },
                     DCTERMS.description: {
                         _literal_markdown(
                             """
@@ -403,7 +413,9 @@ uses query parameters:
             ),
             rdf.blanknode(
                 {
-                    RDFS.label: {rdf.literal("value-search by value type", language="en")},
+                    RDFS.label: {
+                        rdf.literal("value-search by value type", language="en")
+                    },
                     RDFS.comment: {
                         rdf.literal("value-search by value type", language="en")
                     },
@@ -430,7 +442,9 @@ uses query parameters:
             rdf.blanknode(
                 {
                     RDFS.label: {rdf.literal("value-search with text", language="en")},
-                    RDFS.comment: {rdf.literal("value-search with text", language="en")},
+                    RDFS.comment: {
+                        rdf.literal("value-search with text", language="en")
+                    },
                     DCTERMS.description: {
                         _literal_markdown(
                             """
@@ -837,7 +851,9 @@ behaves like `cardSearchText` except that paths are interpreted relative to
         RDF.type: {RDF.Property, TROVE.PathParameter},
         RDFS.label: {rdf.literal("indexCardId", language="en")},
         JSONAPI_MEMBERNAME: {rdf.literal("id", language="en")},
-        RDFS.comment: {rdf.literal("unique identifier for an index-card", language="en")},
+        RDFS.comment: {
+            rdf.literal("unique identifier for an index-card", language="en")
+        },
         TROVE.jsonSchema: {_literal_json({"type": "string"})},
         DCTERMS.description: {
             _literal_markdown(
@@ -902,7 +918,9 @@ may not be used with `page[size]` or `sort`
         RDFS.label: {rdf.literal("page[size]", language="en")},
         JSONAPI_MEMBERNAME: {rdf.literal("page[size]", language="en")},
         RDFS.comment: {
-            rdf.literal("maximum number of search results returned at once", language="en")
+            rdf.literal(
+                "maximum number of search results returned at once", language="en"
+            )
         },
         TROVE.jsonSchema: {_literal_json({"type": "number"})},
         DCTERMS.description: {
