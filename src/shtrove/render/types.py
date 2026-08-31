@@ -13,7 +13,7 @@ import typing
 from primitive_metadata import gather
 
 
-class RenderingFlags(enum.Flags):
+class RenderingFlags(enum.Flag):
     INCREMENTAL = enum.auto()
 
 

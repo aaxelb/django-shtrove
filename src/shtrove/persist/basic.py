@@ -2,26 +2,27 @@
 
 import collections.abc as cabc
 import dataclasses
+import datetime
 import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
+from shtrove.extract.types import ProtoResourceMetadatum
 from .types import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
-    ProtoResourceMetadatum,
     ProtoPersist,
 )
 
 
-class BasicMemPersist(
-    ProtoPersist
-): ...  # TODO: basic ephemeral in-memory implementation
+class BasicMemPersist(ProtoPersist):
+    # TODO: basic ephemeral in-memory implementation
+    ...
 
 
-class BasicFiletreePersist(
-    ProtoPersist
-): ...  # TODO: basic implementation using a filetree
+class BasicFiletreePersist(ProtoPersist):
+    # TODO: basic implementation using a filetree
+    ...
 
 
 @dataclasses.dataclass(kw_only=True)

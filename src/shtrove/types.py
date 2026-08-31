@@ -5,6 +5,8 @@ import collections.abc as _abc
 import typing
 import uuid
 
+from primitive_metadata import gather
+
 from shtrove.extract.types import ProtoExtract
 from shtrove.persist.types import ProtoPersist, ProtoCatalogRecord
 from shtrove.derive.types import ProtoDerive
@@ -20,26 +22,35 @@ class ProtoShtrove(typing.Protocol):
     def way_to_search(self, name: str = "") -> ProtoIndex: ...
     def way_to_render(self, accepts: _abc.Sequence[str] = ()) -> ProtoRender: ...
 
-    def ingest(self, **kwargs) -> ProtoIngestReturn: ...
-    def expel(self, **kwargs) -> ProtoExpelReturn: ...
-    def search_records(self, **kwargs) -> ProtoRecordsearchReturn: ...
-    def search_values(self, **kwargs) -> ProtoValuesearchReturn: ...
-    def browse_record(self, iri: str, **kwargs) -> ProtoBrowseReturn: ...
+    def ingest(self, **kwargs) -> ProtoIngestResponse: ...
+    def expel(self, **kwargs) -> ProtoExpelResponse: ...
+
+    def search_records(self, **kwargs) -> ProtoGatheredResponse: ...
+    def search_values(self, **kwargs) -> ProtoGatheredResponse: ...
+    def browse_record(self, iri: str, **kwargs) -> ProtoGatheredResponse: ...
 
 
 ###
-# result types
+# response types
 
 
-class ProtoIngestReturn(typing.Protocol):
+class ProtoIngestResponse(typing.Protocol):
     catalog_record: ProtoCatalogRecord
 
 
-class ProtoExpelReturn(typing.Protocol):
+class ProtoExpelResponse(typing.Protocol):
     catalog_record_uuids: _abc.Collection[uuid.UUID]
 
 
-class ProtoPagedReturn[T](typing.Protocol):
+class ProtoGatheredResponse(typing.Protocol):
+    @property
+    def focus(self) -> gather.Focus: ...
+
+    @property
+    def gathering(self) -> gather.Gathering: ...
+
+
+class ProtoPagedResponse[T](typing.Protocol):
     items: _abc.Sequence[T]
     cursor: ProtoPageCursor
 

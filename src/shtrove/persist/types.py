@@ -39,7 +39,10 @@ class ProtoPersist(typing.Protocol):
     ) -> ProtoCatalogRecord: ...
 
     def store_derived_metadatum(
-        self, derived_metadatum: ProtoDerivedMetadatum, *, record
+        self,
+        derived_metadatum: ProtoDerivedMetadatum,
+        *,
+        record: ProtoCatalogRecord,
     ) -> None: ...
 
     ###

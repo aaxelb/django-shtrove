@@ -9,15 +9,15 @@ import uuid
 from primitive_metadata import primitive_rdf as rdf
 
 from shtrove.persist.types import ProtoCombinedMetadata
-from shtrove.types import ProtoPagedReturn
+from shtrove.types import ProtoPagedResponse
 from shtrove.util.propertypath import Propertypath
 
 __all__ = (
     "ProtoIndex",
     "ProtoRecordsearchArgs",
-    "ProtoRecordsearchReturn",
+    "ProtoRecordsearchResponse",
     "ProtoValuesearchArgs",
-    "ProtoValuesearchReturn",
+    "ProtoValuesearchResponse",
 )
 
 
@@ -35,11 +35,11 @@ class ProtoIndex(typing.Protocol):
     # searching
     def handle_recordsearch(
         self, recordsearch_args: ProtoRecordsearchArgs
-    ) -> ProtoRecordsearchReturn: ...
+    ) -> ProtoRecordsearchResponse: ...
 
     def handle_valuesearch(
         self, valuesearch_args: ProtoValuesearchArgs
-    ) -> ProtoValuesearchReturn: ...
+    ) -> ProtoValuesearchResponse: ...
 
 
 ###
@@ -55,11 +55,13 @@ class ProtoValuesearchArgs(typing.Protocol): ...  # TODO
 type ProtoValuesearchMatch = ProtoValuesearchIriMatch | ProtoValuesearchDateMatch
 
 
-class ProtoValuesearchReturn(ProtoPagedReturn[ProtoValuesearchMatch], typing.Protocol):
+class ProtoValuesearchResponse(
+    ProtoPagedResponse[ProtoValuesearchMatch], typing.Protocol
+):
     recordsearch_args: ProtoRecordsearchArgs
     valuesearch_args: ProtoValuesearchArgs
     total_match_count: rdf.Literal
-    items: _abc.Sequence[ProtoValuesearchMatch]  # inherited from ProtoPagedReturn
+    items: _abc.Sequence[ProtoValuesearchMatch]  # inherited from ProtoPagedResponse
 
 
 class ProtoRecordsearchMatch(typing.Protocol):
@@ -67,8 +69,8 @@ class ProtoRecordsearchMatch(typing.Protocol):
     text_match_evidence: _abc.Iterable[ProtoTextMatchEvidence]
 
 
-class ProtoRecordsearchReturn(
-    ProtoPagedReturn[ProtoRecordsearchMatch], typing.Protocol
+class ProtoRecordsearchResponse(
+    ProtoPagedResponse[ProtoRecordsearchMatch], typing.Protocol
 ):
     recordsearch_args: ProtoRecordsearchArgs
     total_match_count: rdf.Literal
