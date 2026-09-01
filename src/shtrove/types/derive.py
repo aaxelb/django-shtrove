@@ -1,4 +1,4 @@
-"""shtrove.derive.types: interface for deriving a specific representation of a metadata record"""
+"""shtrove.types.derive: interface for deriving a specific representation of a metadata record"""
 
 from __future__ import annotations
 import collections.abc as _abc
@@ -7,7 +7,7 @@ import typing
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.persist.types import ProtoCombinedMetadata
+from shtrove.types.persist import ProtoCombinedMetadata
 
 
 @typing.runtime_checkable

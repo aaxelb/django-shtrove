@@ -12,46 +12,12 @@ a django app (and assorted tools) to share a trove of (meta)data
 
 ### shtrove
 a python package with abstract interfaces and basic tools for troving and sharing (meta)data
-
-- defines types (python protocols) for clusters of metadata-catalog functionality:
-    - `ProtoExtract`: parse rdf (meta)data from a digital document
-    - `ProtoPersist`: store and browse (meta)data as catalog records
-    - `ProtoIndex`: index and search (meta)data from catalog records
-    - `ProtoDerive`: serialize a catalog record following some (meta)data format
-    - `ProtoRender`: serialize a shtrove api response following some api standard
-    - `ProtoShtrove`: tie the rest together with methods for ingest, browse, and search
-- basic imp(lamentation)s of some of those interfaces:
-    - `ProtoExtract`: `TurtleExtract`
-    - `ProtoRender`:`HtmlRender`, `JsonApiRender`, `JsonLdRender`, `TurtleRender`
-    - `ProtoShtrove`: `BasicShtrove`
-        - requires a given `ProtoPersist`
-        - for search, requires one or more given `ProtoIndex`
-        - for derived metadata formats, can give one or more `ProtoDerive`
-        - uses any available `ProtoExtract` and `ProtoRender`, selected by mediatype
-- [uses python entry points](https://packaging.python.org/en/latest/specifications/entry-points/)
-  to find available implementations
-    - an entry-point group for each shtrove protocol:
-        - `shtrove.ProtoExtract`
-        - `shtrove.ProtoPersist`
-        - `shtrove.ProtoIndex`
-        - `shtrove.ProtoDerive`
-        - `shtrove.ProtoRender`
-        - `shtrove.ProtoShtrove`
-- does NOT use or depend on anything from `django` or `django_shtrove`
+-- see [shtrove README](./shtrove/README.md) for details
 
 ### django_shtrove
-a django app that provides:
-- `DjangoShtrovePersist`: a `ProtoPersist` implementation using django models 
-- `ShtrovesearchElastic8`: a `ProtoIndex` implementation using elasticsearch8
-- `DjangoShtrove`: a `ProtoShtrove` implementation configured from django project settings
-- django views for searching and browsing a given `ProtoShtrove`
-    - `shtrove.urls` url namespace contains:
-        - `/browse`: look up records by given identifier
-        - `/record-search`: find records matching given search filters and text
-        - `/value-search`: find values used at given metadata property paths
-        - `/oai-pmh`: 
-    - selects a `ProtoRender` for each response using
-      [http content negotiation](https://www.rfc-editor.org/info/rfc9110/#content.negotiation)
+a python package with tools for troving and sharing (meta)data using
+[shtrove](../shtrove/README.md) and django
+-- see [django_shtrove README](./django_shtrove/README.md) for details
 
 ## installation
 (TODO: pypi -- for now, install from a local dir or from github...)

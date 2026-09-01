@@ -58,6 +58,7 @@ class CannotDigestExpiredDatum(DigestiveError):
 ###
 # shtrove.index errors
 
+
 class ShtroveIndexError(ShtroveError):
     pass
 

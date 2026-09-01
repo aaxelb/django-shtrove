@@ -6,9 +6,9 @@ import logging
 import typing
 
 from shtrove.exceptions import ShtroveIndexError
-from share.search.index_status import (
-    IndexStatus,
-    StrategyStatus,
+from shtrove.types.index import (
+    ProtoIndex,
+    ProtoIndexStatus,
 )
 from share.util.checksum_iri import ChecksumIri
 from trove.trovesearch.search_params import (

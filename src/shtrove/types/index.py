@@ -1,4 +1,4 @@
-"""shtrove.index.types: interface for indexing metadata records for easy searching"""
+"""shtrove.types.index: interface for indexing metadata records for easy searching"""
 
 from __future__ import annotations
 
@@ -8,12 +8,16 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.persist.types import ProtoCombinedMetadata
-from shtrove.types import ProtoPagedResponse
+from shtrove.types.record import ProtoCombinedMetadata
+from shtrove.types.response import (
+    ProtoPagedResponse,
+    ProtoPageCursor,
+)
 from shtrove.util.propertypath import Propertypath
 
 __all__ = (
     "ProtoIndex",
+    "ProtoIndexStatus",
     "ProtoRecordsearchArgs",
     "ProtoRecordsearchResponse",
     "ProtoValuesearchArgs",
@@ -27,7 +31,7 @@ class ProtoIndex(typing.Protocol):
     # index lifecycle
     def do_setup(self) -> None: ...
     def do_teardown(self) -> None: ...
-    def each_index_status(self) -> _abc.Iterator[ProtoIndexStatus]: ...
+    def get_index_status(self) -> ProtoIndexStatus: ...
 
     ###
     # adding/updating/removing metadata
@@ -47,8 +51,20 @@ class ProtoIndex(typing.Protocol):
 ###
 # index status
 
-
 class ProtoIndexStatus(typing.Protocol):
+    @property
+    def local_name(self) -> str: ...
+    @property
+    def config_checksum(self) -> str: ...
+    @property
+    def is_set_up(self) -> bool: ...
+
+    def each_subindex_status(self) -> _abc.Iterable[ProtoSubindexStatus]: ...
+
+    def each_existing_prior_index(self) -> _abc.Iterable[ProtoIndexStatus]: ...
+
+
+class ProtoSubindexStatus(typing.Protocol):
     @property
     def local_id(self) -> str: ...
     @property
@@ -63,12 +79,14 @@ class ProtoIndexStatus(typing.Protocol):
 
 class ProtoRecordsearchArgs(typing.Protocol):
     ...  # TODO
+
     @property
     def cursor(self) -> ProtoPageCursor | None: ...
 
 
 class ProtoValuesearchArgs(typing.Protocol):
     ...  # TODO
+
     @property
     def cursor(self) -> ProtoPageCursor | None: ...
 
@@ -77,7 +95,8 @@ type ProtoValuesearchMatch = ProtoValuesearchIriMatch | ProtoValuesearchDateMatc
 
 
 class ProtoValuesearchResponse(
-    ProtoPagedResponse[ProtoValuesearchMatch], typing.Protocol
+    ProtoPagedResponse[ProtoValuesearchMatch],
+    typing.Protocol,
 ):
     recordsearch_args: ProtoRecordsearchArgs
     valuesearch_args: ProtoValuesearchArgs
@@ -91,7 +110,8 @@ class ProtoRecordsearchMatch(typing.Protocol):
 
 
 class ProtoRecordsearchResponse(
-    ProtoPagedResponse[ProtoRecordsearchMatch], typing.Protocol
+    ProtoPagedResponse[ProtoRecordsearchMatch],
+    typing.Protocol,
 ):
     recordsearch_args: ProtoRecordsearchArgs
     total_match_count: rdf.Literal

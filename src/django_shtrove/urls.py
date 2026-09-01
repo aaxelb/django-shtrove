@@ -1,5 +1,14 @@
 """
 TODO:
+- urls (align with readme, improve from trove):
+    - `/browse`: look up records by given identifier
+    - `/record-search`: find records matching given search filters and text
+    - `/value-search`: find values used at given metadata property paths
+    - `/oai-pmh`?
+    - `/docs`?
+    - `/vocab`?
+    - rss/atom feeds?
+--
 
 from trove.urls (to be included under a "/shtrove" prefix, for example)
 - /index-card/<uuid:indexcard_uuid>

@@ -1,17 +1,28 @@
 # shtrove
-helpful interfaces and tools for cataloging metadata records
+a python package with abstract interfaces and basic tools for troving and sharing (meta)data
 
-## extract
-extract a catalog record from an input document -- see [shtrove.extract](./extract/README.md)
-
-## persist
-store and browse catalog records -- see [shtrove.persist](./persist/README.md)
-
-## derive
-represent a catalog record in a specific way -- see [shtrove.derive](./derive/README.md)
-
-## index
-build and search an index of catalog records -- see [shtrove.index](./index/README.md)
-
-## render
-serialize a shtrove api response -- see [shtrove.render](./render/README.md)
+- in `shtrove.types`, defines types (python protocols) for clusters of metadata-catalog functionality:
+    - `ProtoExtract`: parse rdf (meta)data from a digital document
+    - `ProtoPersist`: store and browse (meta)data as catalog records
+    - `ProtoIndex`: index and search (meta)data from catalog records
+    - `ProtoDerive`: serialize a catalog record following some (meta)data format
+    - `ProtoRender`: serialize a shtrove api response following some api standard
+    - `ProtoShtrove`: tie the rest together with methods for ingest, browse, and search
+- in `shtrove.basic_imp`, basic imp(lamentation)s of some of those interfaces:
+    - `ProtoExtract`: `TurtleExtract`
+    - `ProtoRender`:`HtmlRender`, `JsonApiRender`, `JsonLdRender`, `TurtleRender`
+    - `ProtoShtrove`: `BasicShtrove`
+        - requires a given `ProtoPersist`
+        - for search, requires one or more given `ProtoIndex`
+        - for derived metadata formats, can give one or more `ProtoDerive`
+        - uses any available `ProtoExtract` and `ProtoRender`, selected by mediatype
+- [uses python entry points](https://packaging.python.org/en/latest/specifications/entry-points/)
+  to find available implementations
+    - an entry-point group for each shtrove protocol:
+        - `shtrove.ProtoExtract`
+        - `shtrove.ProtoPersist`
+        - `shtrove.ProtoIndex`
+        - `shtrove.ProtoDerive`
+        - `shtrove.ProtoRender`
+        - `shtrove.ProtoShtrove`
+- does NOT use or depend on anything from `django` or `django_shtrove`

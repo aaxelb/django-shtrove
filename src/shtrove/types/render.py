@@ -1,4 +1,4 @@
-"""shtrove.render.types: interface for rendering shtrove api responses"""
+"""shtrove.types.render: interface for rendering shtrove api responses"""
 
 __all__ = (
     "ProtoRender",
