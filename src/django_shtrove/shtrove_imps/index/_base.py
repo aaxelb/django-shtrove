@@ -10,7 +10,7 @@ from shtrove.types.index import (
     ProtoIndex,
     ProtoIndexStatus,
 )
-from share.util.checksum_iri import ChecksumIri
+from shtrove.util.checksum import Checksum
 from trove.trovesearch.search_params import (
     CardsearchParams,
     ValuesearchParams,
@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 
 class _LegacyShareIndexStrategyError(ShtroveIndexError):
     pass
+
+
+ShareIndexStrategy: ProtoIndex
 
 
 @dataclasses.dataclass(frozen=True)
@@ -48,9 +51,8 @@ class ShareIndexStrategy(abc.ABC):
       (should include identifiers like version numbers in subclass name)
     """
 
-    CURRENT_STRATEGY_CHECKSUM: typing.ClassVar[
-        ChecksumIri
-    ]  # set on subclasses to protect against accidents
+    # set CURRENT_STRATEGY_CHECKSUM on subclasses to protect against accidents
+    CURRENT_STRATEGY_CHECKSUM: typing.ClassVar[Checksum]
 
     strategy_name: str
     strategy_check: str = ""  # if unspecified, uses current checksum
@@ -71,14 +73,6 @@ class ShareIndexStrategy(abc.ABC):
     def each_subnamed_index(self) -> typing.Iterator[SpecificIndex]:
         for _subname in self.index_subname_set():
             yield self.get_index(_subname)
-
-    @property
-    def nonurgent_messagequeue_name(self) -> str:
-        return f"{self.strategy_name}.nonurgent"
-
-    @property
-    def urgent_messagequeue_name(self) -> str:
-        return f"{self.strategy_name}.urgent"
 
     @property
     def indexname_prefix_parts(self) -> list[str]:
@@ -104,9 +98,9 @@ Unconfirmed changes in {self.__class__.__qualname__}!
 
 If you made these changes on purpose, pls update {self.__class__.__qualname__} with:
 ```
-    CURRENT_STRATEGY_CHECKSUM = {ChecksumIri.__name__}(
-        checksumalgorithm_name='{actual_checksum.checksumalgorithm_name}',
-        salt='{actual_checksum.salt}',
+    CURRENT_STRATEGY_CHECKSUM = {Checksum.__name__}(
+        hash_name='{actual_checksum.hash_name}',
+        prefix='{actual_checksum.prefix}',
         hexdigest='{actual_checksum.hexdigest}',
     )
 ```""")
@@ -132,28 +126,16 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     def with_strategy_check(self, strategy_check: str) -> typing.Self:
         return dataclasses.replace(self, strategy_check=strategy_check)
 
-    def pls_setup(self, *, skip_backfill=False) -> None:
+    def pls_setup(self) -> None:
         if not self.is_current:
             raise _LegacyShareIndexStrategyError("cannot setup a non-current strategy")
         for _index in self.each_subnamed_index():
             _index.pls_create()
             _index.pls_start_keeping_live()
-        _backfill = self.get_or_create_backfill()
-        _backfill.backfill_status = (
-            _backfill.COMPLETE if skip_backfill else _backfill.INITIAL
-        )
-        _backfill.save()
 
     def pls_teardown(self) -> None:
         for _index in self.each_existing_index():
             _index.pls_delete()
-
-    def pls_start_backfill(self):
-        self.get_or_create_backfill().pls_start(self)
-
-    def pls_mark_backfill_complete(self):
-        self.get_or_create_backfill().pls_mark_complete()
-        self.pls_refresh()  # explicit refresh after backfill
 
     def pls_check_exists(self) -> bool:
         return all(_index.pls_check_exists() for _index in self.each_subnamed_index())
@@ -203,7 +185,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
 
     @classmethod
     @abc.abstractmethod
-    def compute_strategy_checksum(self) -> ChecksumIri:
+    def compute_strategy_checksum(self) -> Checksum:
         """get a dict (json-serializable and thereby checksummable) of all
         configuration held still by this ShareIndexStrategy subclass -- changes
         in the checksum may result in new indices being created and filled

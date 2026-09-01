@@ -8,6 +8,7 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
+from shtrove.types.checksum import ProtoChecksum
 from shtrove.types.record import ProtoCombinedMetadata
 from shtrove.types.response import (
     ProtoPagedResponse,
@@ -29,8 +30,9 @@ __all__ = (
 class ProtoIndex(typing.Protocol):
     ###
     # index lifecycle
-    def do_setup(self) -> None: ...
-    def do_teardown(self) -> None: ...
+    def do_initial_setup(self) -> None: ...
+    def do_update_setup(self) -> None: ...
+    def do_teardown(self, *, really_really: bool) -> None: ...
     def get_index_status(self) -> ProtoIndexStatus: ...
 
     ###
@@ -51,11 +53,12 @@ class ProtoIndex(typing.Protocol):
 ###
 # index status
 
+
 class ProtoIndexStatus(typing.Protocol):
     @property
     def local_name(self) -> str: ...
     @property
-    def config_checksum(self) -> str: ...
+    def config_checksum(self) -> ProtoChecksum: ...
     @property
     def is_set_up(self) -> bool: ...
 

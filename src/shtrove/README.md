@@ -8,7 +8,7 @@ a python package with abstract interfaces and basic tools for troving and sharin
     - `ProtoDerive`: serialize a catalog record following some (meta)data format
     - `ProtoRender`: serialize a shtrove api response following some api standard
     - `ProtoShtrove`: tie the rest together with methods for ingest, browse, and search
-- in `shtrove.basic_imp`, basic imp(lamentation)s of some of those interfaces:
+- in `shtrove.basic`, basic imp(lamentation)s of some of those interfaces:
     - `ProtoExtract`: `TurtleExtract`
     - `ProtoRender`:`HtmlRender`, `JsonApiRender`, `JsonLdRender`, `TurtleRender`
     - `ProtoShtrove`: `BasicShtrove`

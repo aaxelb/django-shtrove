@@ -21,9 +21,9 @@ def _ensure_bytes(bytes_or_something: bytes | str) -> bytes:
 
 
 def _builtin_checksum(hash_constructor: Any) -> HexdigestFn:
-    def hexdigest_fn(salt: str | bytes, data: str | bytes) -> str:
+    def hexdigest_fn(prefix: str | bytes, data: str | bytes) -> str:
         hasher = hash_constructor()
-        hasher.update(_ensure_bytes(salt))
+        hasher.update(_ensure_bytes(prefix))
         hasher.update(_ensure_bytes(data))
         return str(hasher.hexdigest())
 
@@ -41,13 +41,13 @@ DEFAULT_CHECKSUM_ALGORITHM_NAME = "sha-256"
 
 @dataclasses.dataclass(frozen=True)
 class Checksum:
-    checksumalgorithm_name: str
-    salt: str
+    hash_name: str
+    prefix: str
     hexdigest: str
 
     def as_iri(self) -> str:
         return (
-            f"urn:checksum:{self.checksumalgorithm_name}:{self.salt}:{self.hexdigest}"
+            f"urn:checksum:{self.hash_name}:{self.prefix}:{self.hexdigest}"
         )
 
     @classmethod
@@ -55,7 +55,7 @@ class Checksum:
         cls,
         *,
         algorithm: str = DEFAULT_CHECKSUM_ALGORITHM_NAME,
-        salt: str = "",
+        prefix: str = "",
         data: str,
     ) -> Self:
         try:
@@ -66,9 +66,9 @@ class Checksum:
                 f" (would recognize {set(CHECKSUM_ALGORITHMS.keys())})"
             )
         return cls(
-            checksumalgorithm_name=algorithm,
-            salt=salt,
-            hexdigest=hexdigest_fn(salt, data),
+            hash_name=algorithm,
+            prefix=prefix,
+            hexdigest=hexdigest_fn(prefix, data),
         )
 
     @classmethod
@@ -76,25 +76,26 @@ class Checksum:
         cls,
         *,
         algorithm: str = DEFAULT_CHECKSUM_ALGORITHM_NAME,
-        salt: str = "",
+        prefix: str = "",
         raw_json: JsonValue,
     ) -> Self:
         return cls.digest(
             algorithm=algorithm,
-            salt=salt,
+            prefix=prefix,
             data=json.dumps(raw_json, sort_keys=True),
         )
 
     @classmethod
     def from_iri(cls, checksum_iri: str) -> Self:
+        # TODO: more iris? now "urn:checksum:..."; could do "magnet:..." or "checksum:" or something spdx?
         try:
-            urn, checksum, algorithmname, salt, hexdigest = checksum_iri.split(":")
+            urn, checksum, algorithmname, prefix, hexdigest = checksum_iri.split(":")
             assert (urn, checksum) == ("urn", "checksum")
-            # TODO: checks on algorithmname, salt, hexdigest
+            # TODO: checks on algorithmname, prefix, hexdigest
         except (ValueError, AssertionError):
             raise ValueError(f'invalid checksum iri "{checksum_iri}"')
         return cls(
-            checksumalgorithm_name=algorithmname,
-            salt=salt,
+            hash_name=algorithmname,
+            prefix=prefix,
             hexdigest=hexdigest,
         )

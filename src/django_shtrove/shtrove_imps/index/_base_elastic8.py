@@ -13,10 +13,12 @@ import elasticsearch8
 from elasticsearch8.helpers import streaming_bulk
 
 from django_shtrove.shtrove_imps.index._base import ShareIndexStrategy
+from shtrove.types import ProtoIndex
+from shtrove.basic.index import 
+from shtrove.util.checksum import Checksum
 from share.search.index_status import IndexStatus
 from share.search import messages
 from share.search.index_strategy._util import timestamp_to_readable_datetime
-from share.util.checksum_iri import ChecksumIri
 from ._indexnames import (
     parse_indexname_parts,
     combine_indexname_parts,
@@ -148,13 +150,13 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         )
         for indexname in indexname_set:
             _index = self.parse_full_index_name(indexname)
-            assert _index.index_strategy.strategy_name == self.strategy_name
+            assert _index.shtrove_index.strategy_name == self.strategy_name
             yield _index
 
     def each_live_index(self, *, any_strategy_check: bool = False):
         for _indexname in self._get_indexnames_for_alias(self._alias_for_keeping_live):
             _index = self.parse_full_index_name(_indexname)
-            if any_strategy_check or (_index.index_strategy == self):
+            if any_strategy_check or (_index.shtrove_index == self):
                 yield _index
 
     # abstract method from ShareIndexStrategy
@@ -305,7 +307,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
         return {
             _index.full_index_name
             for _index in self.each_live_index()
-            if _index.subname == index_subname
+            if _index.subindex_name == index_subname
         }
 
     def _get_indexnames_for_alias(self, alias_name) -> set[str]:
@@ -355,153 +357,126 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
                 ]
             )
 
-    @dataclasses.dataclass
-    class SpecificIndex(ShareIndexStrategy.SpecificIndex):
-        index_strategy: Elastic8IndexStrategy  # note: narrower type
-
-        @property
-        def index_def(self) -> Elastic8IndexStrategy.IndexDefinition:
-            return self.index_strategy.current_index_defs()[self.subname]
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_get_status(self) -> IndexStatus:
-            if not self.pls_check_exists():
-                return IndexStatus(
-                    index_subname=self.subname,
-                    specific_indexname=self.full_index_name,
-                    is_kept_live=False,
-                    doc_count=0,
-                    creation_date="",
-                )
-            index_info = self.index_strategy.es8_client.indices.get(
-                index=self.full_index_name, features="aliases,settings"
-            )[self.full_index_name]
-            index_aliases = set(index_info["aliases"].keys())
-            creation_date = timestamp_to_readable_datetime(
-                index_info["settings"]["index"]["creation_date"]
-            )
-            doc_count = self.index_strategy.es8_client.indices.stats(
-                index=self.full_index_name, metric="docs"
-            )["indices"][self.full_index_name]["primaries"]["docs"]["count"]
-            return IndexStatus(
-                index_subname=self.subname,
-                specific_indexname=self.full_index_name,
-                is_kept_live=(
-                    self.index_strategy._alias_for_keeping_live in index_aliases
-                ),
-                creation_date=creation_date,
-                doc_count=doc_count,
-            )
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_check_exists(self):
-            _indexname = self.full_index_name
-            _result = bool(
-                self.index_strategy.es8_client.indices.exists(index=_indexname)
-            )
-            logger.info(
-                f"{_indexname}: exists" if _result else f"{_indexname}: does not exist"
-            )
-            return _result
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_create(self):
-            assert self.is_current, "cannot create a non-current version of an index!"
-            index_to_create = self.full_index_name
-            logger.debug("Ensuring index %s", index_to_create)
-            index_exists = self.index_strategy.es8_client.indices.exists(
-                index=index_to_create
-            )
-            if not index_exists:
-                logger.info("Creating index %s", index_to_create)
-                _index_def = self.index_def
-                (
-                    self.index_strategy.es8_client.indices.create(
-                        index=index_to_create,
-                        settings=_index_def.settings,
-                        mappings=_index_def.mappings,
-                    )
-                )
-                self.pls_refresh()
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_refresh(self):
-            _indexname = self.full_index_name
-            (self.index_strategy.es8_client.indices.refresh(index=_indexname))
-            logger.info("%s: Refreshed", _indexname)
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_delete(self):
-            _indexname = self.full_index_name
-            (
-                self.index_strategy.es8_client.indices.delete(
-                    index=_indexname, ignore=[400, 404]
-                )
-            )
-            logger.warning("%s: deleted", _indexname)
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_start_keeping_live(self):
-            self.index_strategy._add_indexname_to_alias(
-                indexname=self.full_index_name,
-                alias_name=self.index_strategy._alias_for_keeping_live,
-            )
-            logger.info("%r: now kept live", self)
-
-        # abstract method from ShareIndexStrategy.SpecificIndex
-        def pls_stop_keeping_live(self):
-            self.index_strategy._remove_indexname_from_alias(
-                indexname=self.full_index_name,
-                alias_name=self.index_strategy._alias_for_keeping_live,
-            )
-            logger.warning("%r: no longer kept live", self)
-
-        def pls_get_mappings(self):
-            return self.index_strategy.es8_client.indices.get_mapping(
-                index=self.full_index_name
-            ).body
-
 
 @dataclasses.dataclass
-class _ActionTracker:
-    messageid_by_docid: dict[str, int] = dataclasses.field(default_factory=dict)
-    actions_by_messageid: dict[int, set[tuple[str, str]]] = dataclasses.field(
-        default_factory=lambda: collections.defaultdict(set),
-    )
-    errored_messageids: set[int] = dataclasses.field(default_factory=set)
-    fully_scheduled_messageids: set[int] = dataclasses.field(default_factory=set)
+class SpecificElastic8Index:
+    es8_client: elasticsearch8.Elasticsearch
+    shtrove_index: ProtoIndex  # note: narrower type
+    subindex_name: str  # unique per shtrove_index
 
-    def add_action(self, message_id: int, index_name: str, doc_id: str):
-        self.messageid_by_docid[doc_id] = message_id
-        self.actions_by_messageid[message_id].add((index_name, doc_id))
+    @property
+    def is_current(self) -> bool:
+        return self.shtrove_index.is_current
 
-    def action_done(self, index_name: str, doc_id: str) -> int | None:
-        _messageid = self.get_message_id(doc_id)
-        _remaining_message_actions = self.actions_by_messageid[_messageid]
-        _remaining_message_actions.discard((index_name, doc_id))
-        # return the message id only if this was the last action for that message
-        return (
-            None
-            if _remaining_message_actions
-            or (_messageid not in self.fully_scheduled_messageids)
-            else _messageid
+    @property
+    def has_valid_subname(self) -> bool:
+        return self.subindex_name in self.shtrove_index.index_subname_set()
+
+    @property
+    def full_index_name(self) -> str:
+        return indexnames.combine_indexname_parts(
+            *self.shtrove_index.indexname_prefix_parts,
+            self.subindex_name,
         )
 
-    def action_errored(self, index_name: str, doc_id: str):
-        _messageid = self.messageid_by_docid[doc_id]
-        self.errored_messageids.add(_messageid)
+    @property
+    def index_def(self) -> Elastic8IndexStrategy.IndexDefinition:
+        return self.shtrove_index.current_index_defs()[self.subindex_name]
 
-    def done_scheduling(self, message_id: int):
-        self.fully_scheduled_messageids.add(message_id)
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_get_status(self) -> IndexStatus:
+        if not self.pls_check_exists():
+            return IndexStatus(
+                index_subname=self.subindex_name,
+                specific_indexname=self.full_index_name,
+                is_kept_live=False,
+                doc_count=0,
+                creation_date="",
+            )
+        index_info = self.shtrove_index.es8_client.indices.get(
+            index=self.full_index_name, features="aliases,settings"
+        )[self.full_index_name]
+        index_aliases = set(index_info["aliases"].keys())
+        creation_date = timestamp_to_readable_datetime(
+            index_info["settings"]["index"]["creation_date"]
+        )
+        doc_count = self.shtrove_index.es8_client.indices.stats(
+            index=self.full_index_name, metric="docs"
+        )["indices"][self.full_index_name]["primaries"]["docs"]["count"]
+        return IndexStatus(
+            index_subname=self.subindex_name,
+            specific_indexname=self.full_index_name,
+            is_kept_live=(
+                self.shtrove_index._alias_for_keeping_live in index_aliases
+            ),
+            creation_date=creation_date,
+            doc_count=doc_count,
+        )
 
-    def forget_message(self, message_id: int):
-        del self.actions_by_messageid[message_id]
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_check_exists(self):
+        _indexname = self.full_index_name
+        _result = bool(
+            self.shtrove_index.es8_client.indices.exists(index=_indexname)
+        )
+        logger.info(
+            f"{_indexname}: exists" if _result else f"{_indexname}: does not exist"
+        )
+        return _result
 
-    def get_message_id(self, doc_id: str):
-        return self.messageid_by_docid[doc_id]
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_create(self):
+        assert self.is_current, "cannot create a non-current version of an index!"
+        index_to_create = self.full_index_name
+        logger.debug("Ensuring index %s", index_to_create)
+        index_exists = self.shtrove_index.es8_client.indices.exists(
+            index=index_to_create
+        )
+        if not index_exists:
+            logger.info("Creating index %s", index_to_create)
+            _index_def = self.index_def
+            (
+                self.shtrove_index.es8_client.indices.create(
+                    index=index_to_create,
+                    settings=_index_def.settings,
+                    mappings=_index_def.mappings,
+                )
+            )
+            self.pls_refresh()
 
-    def remaining_done_messages(self):
-        for _messageid, _actions in self.actions_by_messageid.items():
-            if _messageid not in self.errored_messageids:
-                assert not _actions
-                yield _messageid
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_refresh(self):
+        _indexname = self.full_index_name
+        (self.shtrove_index.es8_client.indices.refresh(index=_indexname))
+        logger.info("%s: Refreshed", _indexname)
+
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_delete(self):
+        _indexname = self.full_index_name
+        (
+            self.shtrove_index.es8_client.indices.delete(
+                index=_indexname, ignore=[400, 404]
+            )
+        )
+        logger.warning("%s: deleted", _indexname)
+
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_start_keeping_live(self):
+        self.shtrove_index._add_indexname_to_alias(
+            indexname=self.full_index_name,
+            alias_name=self.shtrove_index._alias_for_keeping_live,
+        )
+        logger.info("%r: now kept live", self)
+
+    # abstract method from ShareIndexStrategy.SpecificIndex
+    def pls_stop_keeping_live(self):
+        self.shtrove_index._remove_indexname_from_alias(
+            indexname=self.full_index_name,
+            alias_name=self.shtrove_index._alias_for_keeping_live,
+        )
+        logger.warning("%r: no longer kept live", self)
+
+    def pls_get_mappings(self):
+        return self.shtrove_index.es8_client.indices.get_mapping(
+            index=self.full_index_name
+        ).body
