@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [project.entry-points."shtrove.ProtoExtract"]
-TurtleExtract = "shtrove.extract.basic:TurtleExtract"
+TurtleExtract = "shtrove.imps.extract:TurtleExtract"
 # TODO: jsonld =
 
 [project.entry-points."shtrove.ProtoPersist"]

@@ -1,7 +1,7 @@
 import collections.abc as _abc
 import dataclasses
 
-from shtrove.basic.checksum import Checksum
+from shtrove.imps.checksum import Checksum
 from shtrove.types.index import (
     ProtoIndexStatus,
     ProtoSubindexStatus,
@@ -9,18 +9,16 @@ from shtrove.types.index import (
 
 
 @dataclasses.dataclass
-class IndexStatus(ProtoIndexStatus):
+class ShtroveIndexStatus(ProtoIndexStatus):
     local_name: str
-    config_checksum: Checksum
+    current_config_checksum: Checksum
     is_set_up: bool
-
-    def each_subindex_status(self) -> _abc.Iterable[ProtoSubindexStatus]: ...
-
-    def each_existing_prior_index(self) -> _abc.Iterable[ProtoIndexStatus]: ...
+    each_subindex_status: _abc.Iterable[ProtoSubindexStatus] = ()
+    each_existing_prior_index: _abc.Iterable[ProtoIndexStatus] = ()
 
 
 @dataclasses.dataclass
-class SubindexStatus(ProtoSubindexStatus):
+class ShtroveSubindexStatus(ProtoSubindexStatus):
     local_id: str
     creation_date: str | None = None
     record_count: int | None = None

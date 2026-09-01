@@ -1,4 +1,5 @@
 """shtrove
 
-(for the parts of django-shtrove that don't need django -- maybe someday its own thing)
+(for the parts of django-shtrove that don't need django or a running service
+-- maybe someday its own thing)
 """

@@ -14,7 +14,10 @@ from elasticsearch8.helpers import streaming_bulk
 
 from django_shtrove.shtrove_imps.index._base import ShareIndexStrategy
 from shtrove.types import ProtoIndex
-from shtrove.basic.index import 
+from shtrove.imps.index import (
+    ShtroveIndexStatus,
+    ShtroveSubindexStatus,
+)
 from shtrove.util.checksum import Checksum
 from share.search.index_status import IndexStatus
 from share.search import messages

@@ -5,6 +5,10 @@ import functools
 import logging
 import typing
 
+from shtrove.imps.index import (
+    ShtroveIndexStatus,
+    ShtroveSubindexStatus,
+)
 from shtrove.exceptions import ShtroveIndexError
 from shtrove.types.index import (
     ProtoIndex,
@@ -64,6 +68,59 @@ class ShareIndexStrategy(abc.ABC):
                 self, "strategy_check", self.CURRENT_STRATEGY_CHECKSUM.hexdigest
             )
         indexnames.raise_if_invalid_indexname_part(self.strategy_check)
+
+    ###
+    # ProtoIndex methods
+
+    def do_initial_setup(self) -> None:
+        self.pls_setup()
+
+    def do_update_setup(self) -> None: ...
+    def do_teardown(self, *, really_really: bool) -> None: ...
+
+    def get_index_status(self) -> ProtoIndexStatus:
+        _subindex_statuses: list[ProtoSubindexStatus] = []
+        _prior_strategy_statuses: list[ProtoIndexStatus] = []
+        if self.is_current:
+            _subindex_statuses = [
+                _index.pls_get_status() for _index in self.each_subnamed_index()
+            ]
+            _prior_strategies = {
+                _index.index_strategy
+                for _index in self.each_existing_index(any_strategy_check=True)
+                if not _index.index_strategy.is_current
+            }
+            _prior_strategy_statuses = [
+                _strategy.pls_get_strategy_status() for _strategy in _prior_strategies
+            ]
+        else:
+            _subindex_statuses = [
+                _index.pls_get_status() for _index in self.each_existing_index()
+            ]
+        return ShtroveIndexStatus(
+            strategy_name=self.strategy_name,
+            strategy_check=self.strategy_check,
+            is_set_up=self.pls_check_exists(),
+            is_default_for_searching=(self == self.pls_get_default_for_searching()),
+            index_statuses=_subindex_statuses,
+            existing_prior_strategies=_prior_strategy_statuses,
+        )
+
+
+    ###
+    # adding/updating/removing metadata
+    def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
+
+    ###
+    # searching
+    def handle_recordsearch(
+        self, recordsearch_args: ProtoRecordsearchArgs
+    ) -> ProtoRecordsearchResponse: ...
+
+    def handle_valuesearch(
+        self, valuesearch_args: ProtoValuesearchArgs
+    ) -> ProtoValuesearchResponse: ...
+
 
     @classmethod
     @functools.cache
@@ -152,34 +209,6 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
         for _index in self.each_live_index():
             _index.pls_stop_keeping_live()
 
-    def pls_get_strategy_status(self) -> StrategyStatus:
-        _index_statuses: list[IndexStatus] = []
-        _prior_strategy_statuses: list[StrategyStatus] = []
-        if self.is_current:
-            _index_statuses = [
-                _index.pls_get_status() for _index in self.each_subnamed_index()
-            ]
-            _prior_strategies = {
-                _index.index_strategy
-                for _index in self.each_existing_index(any_strategy_check=True)
-                if not _index.index_strategy.is_current
-            }
-            _prior_strategy_statuses = [
-                _strategy.pls_get_strategy_status() for _strategy in _prior_strategies
-            ]
-        else:
-            _index_statuses = [
-                _index.pls_get_status() for _index in self.each_existing_index()
-            ]
-        return StrategyStatus(
-            strategy_name=self.strategy_name,
-            strategy_check=self.strategy_check,
-            is_set_up=self.pls_check_exists(),
-            is_default_for_searching=(self == self.pls_get_default_for_searching()),
-            index_statuses=_index_statuses,
-            existing_prior_strategies=_prior_strategy_statuses,
-        )
-
     ###
     # abstract methods (required for concrete subclasses)
 
@@ -260,7 +289,7 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
             )
 
         @abc.abstractmethod
-        def pls_get_status(self) -> IndexStatus:
+        def pls_get_status(self) -> ShtroveIndexStatus:
             raise NotImplementedError
 
         @abc.abstractmethod

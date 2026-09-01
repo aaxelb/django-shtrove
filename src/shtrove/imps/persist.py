@@ -1,4 +1,4 @@
-"""shtrove.persist.basic: simple implementations of shtrove.persist interfaces"""
+"""shtrove.imps.persist: simple implementations of shtrove.persist interfaces"""
 
 import collections.abc as cabc
 import dataclasses

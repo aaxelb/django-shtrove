@@ -20,7 +20,7 @@ def parse_list(env_value: str, *, delimiter: str = ",") -> list[str]:
 SHTROVE_EXTRACT_STRAT_PY = parse_list(
     os.environ.get(
         "SHTROVE_EXTRACT_STRAT_PY_LIST",
-        "shtrove.derive.basic.TurtleExtract",
+        "shtrove.imps.derive.TurtleExtract",
     ),
 )
 # exactly one persist strategy, since it mints record uuids and acts as source of truth
@@ -28,7 +28,7 @@ SHTROVE_EXTRACT_STRAT_PY = parse_list(
 # that coordinates among them however you want to provide a consistent interface)
 SHTROVE_PERSIST_STRAT_PY = os.environ.get(
     "SHTROVE_PERSIST_STRAT_PY",
-    "shtrove.persist.basic.BasicFiletreePersist",  # TODO
+    "shtrove.imps.persist.BasicFiletreePersist",  # TODO
 )
 # zero or more parallel derive strategies
 SHTROVE_DERIVE_STRAT_PY_LIST = parse_list(
@@ -42,6 +42,6 @@ SHTROVE_INDEX_STRAT_PY_LIST = parse_list(
 SHTROVE_RENDER_STRAT_PY_LIST = parse_list(
     os.environ.get(
         "SHTROVE_RENDER_STRAT_PY_LIST",
-        "shtrove.derive.basic.TurtleExtract",
+        "shtrove.imps.render.TurtleRender",
     ),
 )
