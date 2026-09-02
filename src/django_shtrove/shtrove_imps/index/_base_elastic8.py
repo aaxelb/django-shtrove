@@ -35,7 +35,7 @@ class IndexDefinition(typing.TypedDict):
     settings: dict
 
 
-class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
+class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
     """abstract base class for index strategies using elasticsearch 8"""
 
     ###
@@ -141,8 +141,9 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
     def es8_client(self):
         return self._get_elastic8_client()  # cached classmethod for shared client
 
-    # abstract method from ShareIndexStrategy
-    def each_existing_index(self, *, any_strategy_check: bool = False):
+    def each_existing_index(
+        self, *, any_strategy_check: bool = False
+    ) -> typing.Iterator[SpecificElastic8Index]:
         _index_wildcard = (
             combine_indexname_parts(self.strategy_name, "*")
             if any_strategy_check
@@ -161,6 +162,26 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
             _index = self.parse_full_index_name(_indexname)
             if any_strategy_check or (_index.shtrove_index == self):
                 yield _index
+
+    def do_teardown(self, *, really_really: bool) -> None:
+        if really_really:
+            for _index in self.each_existing_index():
+                _index.pls_delete()
+
+    def pls_check_exists(self) -> bool:
+        return all(_index.pls_check_exists() for _index in self.each_subnamed_index())
+
+    def pls_refresh(self) -> None:
+        for _index in self.each_subnamed_index():
+            _index.pls_refresh()
+
+    def pls_start_keeping_live(self):
+        for _index in self.each_subnamed_index():
+            _index.pls_start_keeping_live()
+
+    def pls_stop_keeping_live(self):
+        for _index in self.each_live_index():
+            _index.pls_stop_keeping_live()
 
     # abstract method from ShareIndexStrategy
     def pls_handle_messages_chunk(self, messages_chunk):
@@ -364,7 +385,7 @@ class BaseElastic8IndexStrategy(ProtoIndexStrategy, abc.ABC):
 @dataclasses.dataclass
 class SpecificElastic8Index:
     es8_client: elasticsearch8.Elasticsearch
-    shtrove_index: ProtoIndex  # note: narrower type
+    shtrove_index: ShareLegacyElastic8Strategy
     subindex_name: str  # unique per shtrove_index
 
     @property
@@ -386,7 +407,6 @@ class SpecificElastic8Index:
     def index_def(self) -> Elastic8IndexStrategy.IndexDefinition:
         return self.shtrove_index.current_index_defs()[self.subindex_name]
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_get_status(self) -> IndexStatus:
         if not self.pls_check_exists():
             return IndexStatus(
@@ -416,7 +436,6 @@ class SpecificElastic8Index:
             doc_count=doc_count,
         )
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_check_exists(self):
         _indexname = self.full_index_name
         _result = bool(
@@ -427,7 +446,6 @@ class SpecificElastic8Index:
         )
         return _result
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_create(self):
         assert self.is_current, "cannot create a non-current version of an index!"
         index_to_create = self.full_index_name
@@ -447,13 +465,11 @@ class SpecificElastic8Index:
             )
             self.pls_refresh()
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_refresh(self):
         _indexname = self.full_index_name
         (self.shtrove_index.es8_client.indices.refresh(index=_indexname))
         logger.info("%s: Refreshed", _indexname)
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_delete(self):
         _indexname = self.full_index_name
         (
@@ -463,7 +479,6 @@ class SpecificElastic8Index:
         )
         logger.warning("%s: deleted", _indexname)
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_start_keeping_live(self):
         self.shtrove_index._add_indexname_to_alias(
             indexname=self.full_index_name,
@@ -471,7 +486,6 @@ class SpecificElastic8Index:
         )
         logger.info("%r: now kept live", self)
 
-    # abstract method from ShareIndexStrategy.SpecificIndex
     def pls_stop_keeping_live(self):
         self.shtrove_index._remove_indexname_from_alias(
             indexname=self.full_index_name,
