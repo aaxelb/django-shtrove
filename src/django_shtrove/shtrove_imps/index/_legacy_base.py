@@ -15,7 +15,7 @@ from shtrove.types.index import (
     ProtoIndexStatus,
     ProtoSubindexStatus,
 )
-from shtrove.util.checksum import Checksum
+from shtrove.imps.checksum import Checksum
 from trove.trovesearch.search_params import (
     CardsearchParams,
     ValuesearchParams,
@@ -31,6 +31,9 @@ logger = logging.getLogger(__name__)
 
 class _LegacyShareIndexStrategyError(ShtroveIndexError):
     pass
+
+
+class 
 
 
 @dataclasses.dataclass(frozen=True)

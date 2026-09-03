@@ -254,28 +254,6 @@ class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
         _strategycheck = _strategycheck.rstrip("*")  # may be a wildcard alias
         return self.with_strategy_check(_strategycheck)
 
-    # abstract method from ShareIndexStrategy
-    def pls_handle_search__passthru(
-        self, request_body=None, request_queryparams=None
-    ) -> dict:
-        _queryparams = request_queryparams or {}
-        _requested_strategy = _queryparams.pop("indexStrategy", "")
-        _indexname = self.indexname_wildcard
-        if _requested_strategy and _requested_strategy.startswith(
-            self.indexname_prefix
-        ):
-            _index = self.parse_full_index_name(_requested_strategy)
-            if _index.has_valid_subname:
-                _indexname = _index.full_index_name
-        return self.es8_client.search(
-            index=_indexname,
-            body={
-                **(request_body or {}),
-                "track_total_hits": True,
-            },
-            params=(request_queryparams or {}),
-        )
-
     # override from ShareIndexStrategy
     def pls_refresh(self):
         super().pls_refresh()  # refreshes each index
