@@ -33,9 +33,6 @@ class _LegacyShareIndexStrategyError(ShtroveIndexError):
     pass
 
 
-class 
-
-
 @dataclasses.dataclass(frozen=True)
 class ShareIndexStrategy(ProtoIndex, abc.ABC):
     """an abstraction for indexes in different places and ways.
@@ -216,26 +213,6 @@ If you made these changes on purpose, pls update {self.__class__.__qualname__} w
     @abc.abstractmethod
     def pls_get_default_for_searching(self) -> ShareIndexStrategy | None:
         raise NotImplementedError
-
-    ###
-    # optional implementations
-
-    def pls_handle_cardsearch(
-        self, cardsearch_params: CardsearchParams
-    ) -> CardsearchHandle:
-        raise NotImplementedError
-
-    def pls_handle_valuesearch(
-        self, valuesearch_params: ValuesearchParams
-    ) -> ValuesearchHandle:
-        raise NotImplementedError
-
-    def pls_handle_search__passthru(
-        self, request_body=None, request_queryparams=None
-    ) -> dict:
-        raise NotImplementedError(
-            f"{self.__class__.__name__} does not implement pls_handle_search__passthru (either implement it or don't use this strategy for that)"
-        )
 
     # ShareIndexStrategy.SpecificIndex must be implemented by subclasses
     # in their own `class SpecificIndex(ShareIndexStrategy.SpecificIndex)`

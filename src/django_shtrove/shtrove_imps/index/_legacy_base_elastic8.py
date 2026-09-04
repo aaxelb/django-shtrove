@@ -1,5 +1,4 @@
 import abc
-import collections
 from collections.abc import Mapping
 import dataclasses
 import functools
@@ -13,12 +12,16 @@ import elasticsearch8
 from elasticsearch8.helpers import streaming_bulk
 
 from django_shtrove.shtrove_imps.index._base import ShareIndexStrategy
-from shtrove.types import ProtoIndex
+from shtrove.types import (
+    ProtoIndex,
+    ProtoCombinedMetadata,
+)
 from shtrove.imps.index import (
     ShtroveIndexStatus,
     ShtroveSubindexStatus,
 )
-from shtrove.util.checksum import Checksum
+from shtrove.imps.checksum import Checksum
+from shtrove.util.json import JsonObject
 from share.search.index_status import IndexStatus
 from share.search import messages
 from share.search.index_strategy._util import timestamp_to_readable_datetime
@@ -31,8 +34,8 @@ logger = logging.getLogger(__name__)
 
 
 class IndexDefinition(typing.TypedDict):
-    mappings: dict
-    settings: dict
+    mappings: JsonObject
+    settings: JsonObject
 
 
 class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
@@ -47,17 +50,7 @@ class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def build_elastic_actions(
-        self,
-        messages_chunk: messages.MessagesChunk,
-    ) -> typing.Iterable[MessageActionSet]:
-        raise NotImplementedError
-
-    def after_chunk(
-        self,
-        messages_chunk: messages.MessagesChunk,
-        affected_indexnames: typing.Iterable[str],
-    ) -> None: ...  # implement when needed
+    def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
 
     ###
     # helper methods for subclasses to use (or override)
@@ -183,8 +176,7 @@ class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
         for _index in self.each_live_index():
             _index.pls_stop_keeping_live()
 
-    # abstract method from ShareIndexStrategy
-    def pls_handle_messages_chunk(self, messages_chunk):
+    def _send_elastic_action(self):
         self.assert_message_type(messages_chunk.message_type)
         _action_tracker = _ActionTracker()
         _bulk_stream = streaming_bulk(

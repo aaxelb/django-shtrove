@@ -2,6 +2,7 @@
 
 __all__ = (
     "ProtoCatalogRecord",
+    "ProtoCombinedMetadata",
     "ProtoDerive",
     "ProtoExpelResponse",
     "ProtoExtract",
@@ -24,7 +25,10 @@ from shtrove.types.response import (
     ProtoPageCursor,
     ProtoPagedResponse,
 )
-from shtrove.types.record import ProtoCatalogRecord
+from shtrove.types.record import (
+    ProtoCatalogRecord,
+    ProtoCombinedMetadata,
+)
 from shtrove.types.derive import ProtoDerive
 from shtrove.types.index import ProtoIndex
 from shtrove.types.render import ProtoRender

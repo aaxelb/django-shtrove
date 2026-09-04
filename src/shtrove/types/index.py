@@ -30,6 +30,7 @@ __all__ = (
 class ProtoIndex(typing.Protocol):
     ###
     # index lifecycle
+
     def do_initial_setup(self) -> None: ...
     def do_update_setup(self) -> None: ...
     def do_teardown(self, *, really_really: bool) -> None: ...
@@ -37,10 +38,17 @@ class ProtoIndex(typing.Protocol):
 
     ###
     # adding/updating/removing metadata
-    def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
+
+    def set_metadatum(self, metadatum: ProtoCombinedMetadata) -> None:
+        self.set_each_metadatum([metadatum])
+
+    def set_each_metadatum(self, metadata: _abc.Iterable[ProtoCombinedMetadata]) -> None:
+        for _metadatum in metadata:
+            self.set_metadatum(_metadatum)
 
     ###
     # searching
+
     def handle_recordsearch(
         self, recordsearch_args: ProtoRecordsearchArgs
     ) -> ProtoRecordsearchResponse: ...
