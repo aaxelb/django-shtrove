@@ -1,23 +1,12 @@
 from __future__ import annotations
-from collections.abc import (
-    Iterable,
-    Sequence,
-    Generator,
-)
+import collections.abc as _abc
 import datetime
 
-###
-# types for json-serializable stuff
-
-JsonPrimitive = str | int | float | bool | None
-
-type JsonValue = JsonPrimitive | list[JsonValue] | JsonObject
-
-type JsonNonArrayValue = JsonPrimitive | JsonObject
-
-type JsonObject = dict[str, JsonValue]
-
-type JsonPath = Sequence[str]  # path of json keys
+from shtrove.types.json import (
+    JsonObject,
+    JsonValue,
+    JsonPrimitive,
+)
 
 JSONLD_VALUE_KEYS = ("@value", "@id")
 
@@ -25,8 +14,9 @@ JSONLD_VALUE_KEYS = ("@value", "@id")
 # utils for navigating nested json in the style of trove.derive.osfmap_json
 # (TODO: more general json-ld utils)
 
+type JsonPath = _abc.Sequence[str]  # path of json keys
 
-def json_vals(json_obj: JsonObject, path: JsonPath) -> Generator[JsonValue]:
+def json_vals(json_obj: JsonObject, path: JsonPath) -> _abc.Iterator[JsonValue]:
     assert path
     _step, *_rest = path
     try:
@@ -50,8 +40,8 @@ def json_vals(json_obj: JsonObject, path: JsonPath) -> Generator[JsonValue]:
 def json_prims(
     json_val: JsonValue,
     path: JsonPath,
-    value_key_options: Iterable[str] = JSONLD_VALUE_KEYS,
-) -> Generator[JsonPrimitive]:
+    value_key_options: _abc.Iterable[str] = JSONLD_VALUE_KEYS,
+) -> _abc.Iterator[JsonPrimitive]:
     if isinstance(json_val, list):
         for _list_val in json_val:
             yield from json_prims(_list_val, path, value_key_options)
@@ -79,7 +69,7 @@ def json_strs(
     path: JsonPath,
     value_key_options: Iterable[str] = JSONLD_VALUE_KEYS,
     coerce_str: bool = False,
-) -> Generator[str]:
+) -> _abc.Iterator[str]:
     for _prim in json_prims(json_val, path, value_key_options):
         if isinstance(_prim, str):
             yield _prim
@@ -90,7 +80,7 @@ def json_strs(
 def json_datetimes(
     json_val: JsonValue,
     path: JsonPath,
-) -> Generator[datetime.datetime]:
+) -> _abc.Iterator[datetime.datetime]:
     for _prim in json_prims(json_val, path):
         if isinstance(_prim, str):
             try:

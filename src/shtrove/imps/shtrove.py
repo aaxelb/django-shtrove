@@ -85,12 +85,12 @@ class BasicShtrove(_types.ProtoShtrove):
         focus_iri: str,
         input_mediatype: str,
         input_document: str,
-        record_identifier: str = '',  # default focus_iri
+        record_identifier: str = "",  # default focus_iri
         is_supplementary: bool = False,
         # TODO: expiration_date: datetime.date | None = None,  # default "never"
         restore_deleted: bool = False,
         urgent: bool = False,
-    ) -> None:
+    ) -> _types.ProtoCatalogRecord:
         """ingest: extract + derive + persist + index"""
         # extract
         _metadatum = self.way_to_extract(input_mediatype).extract(

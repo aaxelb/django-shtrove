@@ -1,5 +1,5 @@
 import abc
-from collections.abc import Mapping
+import collections.abc as _abc
 import dataclasses
 import functools
 from http import HTTPStatus
@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticIndexDefinition(typing.TypedDict):
+    local_name: str
     mappings: JsonObject
     settings: JsonObject
 
@@ -43,55 +44,34 @@ class ShareLegacyElastic8Strategy(_types.ProtoIndex, abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def define_current_indexes(cls) -> dict[str, ElasticIndexDefinition]:
+    def each_current_index_def(cls) -> _abc.Iterable[ElasticIndexDefinition]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def set_metadatum(self, metadata: _types.ProtoCombinedMetadata) -> None: ...
+    def set_metadatum(self, metadata: _types.ProtoCombinedMetadata) -> None:
+        raise NotImplementedError
 
     ###
-    # helper methods for subclasses to use (or override)
+    # methods for ProtoIndex
 
-    def build_index_action(self, doc_id, doc_source):
-        return {
-            "_op_type": "index",
-            "_id": str(doc_id),
-            "_source": doc_source,
-        }
-
-    def build_delete_action(self, doc_id):
-        return {
-            "_op_type": "delete",
-            "_id": str(doc_id),
-        }
-
-    def build_update_action(self, doc_id, doc_source):
-        return {
-            "_op_type": "update",
-            "_id": str(doc_id),
-            "doc": doc_source,
-        }
-
-    ###
-    # implementation for subclasses to ignore
-
-    # for IndexSetup
     def do_initial_setup(self) -> None:
+        '''for ProtoIndex'''
         for _index_def in self.current_elastic_index_defs():
-            self._create_elastic_index(
-            
+            self._create_elastic_index(_index_def)
 
-    # for IndexSetup
     def do_update_setup(self) -> None:
+        '''for ProtoIndex'''
         self.pls_setup()  # TODO?
 
     @abc.abstractmethod
     def do_teardown(self, *, really_really: bool) -> None:
+        '''for ProtoIndex'''
         raise NotImplementedError
 
-    def get_index_status(self) -> _indextypes.ProtoIndexStatus:
-        _subindex_statuses: list[_indextypes.ProtoSubindexStatus] = []
-        _prior_strategy_statuses: list[_indextypes.ProtoIndexStatus] = []
+    def get_index_status(self) -> _types.index.ProtoIndexStatus:
+        '''for ProtoIndex'''
+        _subindex_statuses: list[_types.index.ProtoSubindexStatus] = []
+        _prior_strategy_statuses: list[_types.index.ProtoIndexStatus] = []
         if self.is_current:
             _subindex_statuses = [
                 _index.pls_get_status() for _index in self.each_subnamed_index()
@@ -117,29 +97,56 @@ class ShareLegacyElastic8Strategy(_types.ProtoIndex, abc.ABC):
             existing_prior_strategies=_prior_strategy_statuses,
         )
 
+    ###
+    # helper methods for subclasses to use (or override)
 
-    # abstract method from ShareIndexStrategy
+    def build_index_action(self, doc_id, doc_source):
+        return {
+            "_op_type": "index",
+            "_id": str(doc_id),
+            "_source": doc_source,
+        }
+
+    def build_delete_action(self, doc_id):
+        return {
+            "_op_type": "delete",
+            "_id": str(doc_id),
+        }
+
+    def build_update_action(self, doc_id, doc_source):
+        return {
+            "_op_type": "update",
+            "_id": str(doc_id),
+            "doc": doc_source,
+        }
+
+    ###
+    # implementation for subclasses to mostly ignore
+
     @classmethod
-    def compute_current_config_checksum(cls):
-        _current_defs = cls.current_index_defs()
-        if "" in _current_defs and len(_current_defs) == 1:
-            _current_defs = _current_defs[""]
-        return ChecksumIri.digest_json(
+    @functools.cache
+    def current_index_defs(cls) -> _abc.Mapping[str, ElasticIndexDefinition]:
+        # readonly and cached per class
+        return {
+            _def['local_name']: _def
+            for _def in cls.each_current_index_def()
+        }
+
+    @classmethod
+    def compute_current_config_checksum(cls) -> Checksum:
+        _config_json: JsonObject = cls.current_index_defs()
+        if "" in _config_json and len(_config_json) == 1:
+            _config_json = _config_json[""]
+        return Checksum.digest_json(
             checksumalgorithm_name="sha-256",
             salt=cls.__name__,
-            raw_json=_current_json,  # type: ignore[arg-type]
+            raw_json=_config_json,  # type: ignore[arg-type]
         )
 
     # abstract method from ShareIndexStrategy
     @classmethod
     def each_index_subname(self) -> typing.Iterable[str]:
         yield from self.current_index_defs().keys()
-
-    @classmethod
-    @functools.cache
-    def current_index_defs(cls) -> Mapping[str, ElasticIndexDefinition]:
-        # readonly and cached per class
-        return types.MappingProxyType(cls.define_current_indexes())
 
     @classmethod
     @functools.cache

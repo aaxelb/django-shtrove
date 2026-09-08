@@ -19,7 +19,9 @@ class DjangoShtrove(BasicShtrove):
             "PERSIST_ENTRYPOINT",
         )
         _persist_constructor = load_entry_point(
-            "shtrove.ProtoPersist", _entrypoint_name, ProtoPersist,
+            "shtrove.ProtoPersist",
+            _entrypoint_name,
+            ProtoPersist,
         )
         return _persist_constructor(**_kwargs)
 
@@ -30,7 +32,9 @@ class DjangoShtrove(BasicShtrove):
                 _index_settings,
                 "INDEX_ENTRYPOINT",
             )
-            _index_constructor = load_entry_point("shtrove.ProtoIndex", _entrypoint_name, ProtoIndex)
+            _index_constructor = load_entry_point(
+                "shtrove.ProtoIndex", _entrypoint_name, ProtoIndex
+            )
             yield _index_constructor(**_index_kwargs)
 
     def way_to_search(self, name: str = "") -> ProtoIndex:

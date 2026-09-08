@@ -14,6 +14,16 @@ __all__ = (
     "ProtoPersist",
     "ProtoRender",
     "ProtoShtrove",
+    'checksum',
+    'derive',
+    'extract',
+    'index',
+    'persist',
+    'record',
+    'render',
+    'response',
+    'shtrove',
+    'json',
 )
 
 from shtrove.types.extract import ProtoExtract

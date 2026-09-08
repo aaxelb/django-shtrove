@@ -13,8 +13,8 @@ for common dev commands
 - requires a `python` executable of appropriate version (TODO: decide/document supported versions)
 - automatically creates/uses a python virtual environment at `.venv/`
 - commands:
-    - `make format`: auto-format the code -- updates files in-place
-    - `make lint`: check the code for detectable errors (format, syntax, undefined or unused names, type-checking, ...) -- does not update files
+    - `make format`: auto-format the code -- modifies files in-place
+    - `make lint`: check the code for detectable errors (format, syntax, undefined or unused names, type-checking, ...) -- does not modify files
     - `make test`: run all test suites (note: may expect some services running?)
     - `make clean`: delete the virtual environment at `.venv/`
     - `make check`: same as `make lint test`
@@ -27,17 +27,29 @@ if you have a compose tool named `pc`, for example:
 - `pc run shtrove_testbox` should set up services (postgres and elasticsearch) and run `make check`
 
 ## code conventions
-- each module should have its outward interface listed in `__all__`
-    - may be used to generate documentation of the module's public api
-- give helpful docstrings to most everything (especially those listed in `__all__`)
-    - first line: short description (may be used as a header in generated docs)
-    - second line: empty
-    - rest: explanation of what it does with doctest examples
-- begin names with `_` (underscore) for:
-    - all local variables (and then consider how much this eases reading even your own code)
-    - anything less-than-enthusiastically public
+- choose names thoughtfully
+    - try to consider what a name might convey in various contexts -- avoid unhelpful collisions
+    - whenever a name is not meant for use outside its file, prefix with `_` (underscore)
+      -- this includes all local variables (try it and see how much easier to understand)
+    - a name prefixed `each_` indicates something meant to be iterated on only once,
+      like an iterator or a generator function
+      ```
+      def each_thing() -> _abc.Iterator[Thing]:
+          yield Thing(1)
+          yield Thing(2)
+      ```
 - use accurate type annotations everywhere reasonably feasible
-    - defaults to strict type-linting (using `mypy`), but may loosen with
-      module-specific config in `mypy.ini`
+    - especially for public interface (and then try to avoid breaking type changes)
+    - `make lint` defaults to strict type-linting (using `mypy`), but you may loosen constraints
+      with module-specific config in `mypy.ini` -- avoid getting too stuck when type annotations
+      are less-reasonably feasible
     - use duck-types from `collections.abc` -- `import collections.abc as _abc`
+      - prefer more permissive types (like `_abc.Iterable[T]`) when multiple implementations
+- each module should have its outward interface listed in `__all__`
+    - may be used to generate documentation of the module's public interface
+- give helpful docstrings to most everything (especially public interfaces)
+    - often helpful to follow [python docstring conventions](https://peps.python.org/pep-0257/)
+    - include concise descriptions of behavior with 
+      [doctest](https://docs.python.org/3/library/doctest.html) examples
+      -- make sure those doctests are run with the test suite by (TODO)
 - ... (TODO)
