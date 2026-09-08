@@ -12,10 +12,7 @@ import elasticsearch8
 from elasticsearch8.helpers import streaming_bulk
 
 from django_shtrove.shtrove_imps.index._base import ShareIndexStrategy
-from shtrove.types import (
-    ProtoIndex,
-    ProtoCombinedMetadata,
-)
+from shtrove import types as _types
 from shtrove.imps.index import (
     ShtroveIndexStatus,
     ShtroveSubindexStatus,
@@ -33,12 +30,12 @@ from ._indexnames import (
 logger = logging.getLogger(__name__)
 
 
-class IndexDefinition(typing.TypedDict):
+class ElasticIndexDefinition(typing.TypedDict):
     mappings: JsonObject
     settings: JsonObject
 
 
-class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
+class ShareLegacyElastic8Strategy(_types.ProtoIndex, abc.ABC):
     """abstract base class for index strategies using elasticsearch 8"""
 
     ###
@@ -46,11 +43,11 @@ class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
 
     @classmethod
     @abc.abstractmethod
-    def define_current_indexes(cls) -> dict[str, IndexDefinition]:
+    def define_current_indexes(cls) -> dict[str, ElasticIndexDefinition]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
+    def set_metadatum(self, metadata: _types.ProtoCombinedMetadata) -> None: ...
 
     ###
     # helper methods for subclasses to use (or override)
@@ -78,15 +75,55 @@ class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
     ###
     # implementation for subclasses to ignore
 
+    # for IndexSetup
+    def do_initial_setup(self) -> None:
+        for _index_def in self.current_elastic_index_defs():
+            self._create_elastic_index(
+            
+
+    # for IndexSetup
+    def do_update_setup(self) -> None:
+        self.pls_setup()  # TODO?
+
+    @abc.abstractmethod
+    def do_teardown(self, *, really_really: bool) -> None:
+        raise NotImplementedError
+
+    def get_index_status(self) -> _indextypes.ProtoIndexStatus:
+        _subindex_statuses: list[_indextypes.ProtoSubindexStatus] = []
+        _prior_strategy_statuses: list[_indextypes.ProtoIndexStatus] = []
+        if self.is_current:
+            _subindex_statuses = [
+                _index.pls_get_status() for _index in self.each_subnamed_index()
+            ]
+            _prior_strategies = {
+                _index.index_strategy
+                for _index in self.each_existing_index(any_strategy_check=True)
+                if not _index.shtrove_index.is_current
+            }
+            _prior_strategy_statuses = [
+                _strategy.pls_get_strategy_status() for _strategy in _prior_strategies
+            ]
+        else:
+            _subindex_statuses = [
+                _index.pls_get_status() for _index in self.each_existing_index()
+            ]
+        return ShtroveIndexStatus(
+            strategy_name=self.strategy_name,
+            strategy_check=self.strategy_check,
+            is_set_up=self.pls_check_exists(),
+            is_default_for_searching=(self == self.pls_get_default_for_searching()),
+            index_statuses=_subindex_statuses,
+            existing_prior_strategies=_prior_strategy_statuses,
+        )
+
+
     # abstract method from ShareIndexStrategy
     @classmethod
-    def compute_strategy_checksum(cls):
-        _current_json = {
-            _subname: dataclasses.asdict(_def)
-            for _subname, _def in cls.current_index_defs().items()
-        }
-        if set(_current_json.keys()) == {""}:
-            _current_json = _current_json[""]
+    def compute_current_config_checksum(cls):
+        _current_defs = cls.current_index_defs()
+        if "" in _current_defs and len(_current_defs) == 1:
+            _current_defs = _current_defs[""]
         return ChecksumIri.digest_json(
             checksumalgorithm_name="sha-256",
             salt=cls.__name__,
@@ -100,7 +137,7 @@ class ShareLegacyElastic8Strategy(ProtoIndex, abc.ABC):
 
     @classmethod
     @functools.cache
-    def current_index_defs(cls) -> Mapping[str, IndexDefinition]:
+    def current_index_defs(cls) -> Mapping[str, ElasticIndexDefinition]:
         # readonly and cached per class
         return types.MappingProxyType(cls.define_current_indexes())
 
@@ -374,7 +411,7 @@ class SpecificElastic8Index:
         )
 
     @property
-    def index_def(self) -> Elastic8IndexStrategy.IndexDefinition:
+    def index_def(self) -> ElasticIndexDefinition:
         return self.shtrove_index.current_index_defs()[self.subindex_name]
 
     def pls_get_status(self) -> IndexStatus:
@@ -399,18 +436,14 @@ class SpecificElastic8Index:
         return IndexStatus(
             index_subname=self.subindex_name,
             specific_indexname=self.full_index_name,
-            is_kept_live=(
-                self.shtrove_index._alias_for_keeping_live in index_aliases
-            ),
+            is_kept_live=(self.shtrove_index._alias_for_keeping_live in index_aliases),
             creation_date=creation_date,
             doc_count=doc_count,
         )
 
     def pls_check_exists(self):
         _indexname = self.full_index_name
-        _result = bool(
-            self.shtrove_index.es8_client.indices.exists(index=_indexname)
-        )
+        _result = bool(self.shtrove_index.es8_client.indices.exists(index=_indexname))
         logger.info(
             f"{_indexname}: exists" if _result else f"{_indexname}: does not exist"
         )

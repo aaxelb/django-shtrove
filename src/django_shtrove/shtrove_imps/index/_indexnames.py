@@ -1,7 +1,6 @@
 from shtrove.exceptions import ShtroveIndexError
 
-
-INDEXNAME_DELIM = '__'  # used to separate indexnames into a list of meaningful values
+INDEXNAME_DELIM = "__"  # used to separate indexnames into a list of meaningful values
 
 
 def is_valid_indexname_part(indexname_part: str) -> bool:
@@ -10,7 +9,9 @@ def is_valid_indexname_part(indexname_part: str) -> bool:
 
 def raise_if_invalid_indexname_part(indexname_part: str) -> None:
     if INDEXNAME_DELIM in indexname_part:
-        raise ShtroveIndexError(f'name may not contain "{INDEXNAME_DELIM}" (got "{indexname_part}")')
+        raise ShtroveIndexError(
+            f'name may not contain "{INDEXNAME_DELIM}" (got "{indexname_part}")'
+        )
 
 
 def combine_indexname_parts(*indexname_parts: str) -> str:

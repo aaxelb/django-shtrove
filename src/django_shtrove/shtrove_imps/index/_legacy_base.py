@@ -10,20 +10,8 @@ from shtrove.imps.index import (
     ShtroveSubindexStatus,
 )
 from shtrove.exceptions import ShtroveIndexError
-from shtrove.types.index import (
-    ProtoIndex,
-    ProtoIndexStatus,
-    ProtoSubindexStatus,
-)
+import shtrove.types.index as _indextypes
 from shtrove.imps.checksum import Checksum
-from trove.trovesearch.search_params import (
-    CardsearchParams,
-    ValuesearchParams,
-)
-from trove.trovesearch.search_handle import (
-    CardsearchHandle,
-    ValuesearchHandle,
-)
 from . import _indexnames as indexnames
 
 logger = logging.getLogger(__name__)
@@ -34,7 +22,7 @@ class _LegacyShareIndexStrategyError(ShtroveIndexError):
 
 
 @dataclasses.dataclass(frozen=True)
-class ShareIndexStrategy(ProtoIndex, abc.ABC):
+class ShareIndexStrategy(_indextypes.ProtoIndex, abc.ABC):
     """an abstraction for indexes in different places and ways.
 
     (NOTE: this was copied from SHARE -- worth reconsidering details)
@@ -60,67 +48,29 @@ class ShareIndexStrategy(ProtoIndex, abc.ABC):
     strategy_check: str = ""  # if unspecified, uses current checksum
 
     def __post_init__(self):
-        indexnames.raise_if_invalid_indexname_part(self.strategy_name)
+        _indexnames.raise_if_invalid_indexname_part(self.strategy_name)
         if not self.strategy_check:
             object.__setattr__(
                 self, "strategy_check", self.CURRENT_STRATEGY_CHECKSUM.hexdigest
             )
-        indexnames.raise_if_invalid_indexname_part(self.strategy_check)
+        _indexnames.raise_if_invalid_indexname_part(self.strategy_check)
 
     ###
     # ProtoIndex methods
 
-    def do_initial_setup(self) -> None:
-        self.pls_setup()  # TODO: raise if already set up?
-
-    def do_update_setup(self) -> None:
-        self.pls_setup()  # TODO?
-
-    @abc.abstractmethod
-    def do_teardown(self, *, really_really: bool) -> None:
-        raise NotImplementedError
-
-    def get_index_status(self) -> ProtoIndexStatus:
-        _subindex_statuses: list[ProtoSubindexStatus] = []
-        _prior_strategy_statuses: list[ProtoIndexStatus] = []
-        if self.is_current:
-            _subindex_statuses = [
-                _index.pls_get_status() for _index in self.each_subnamed_index()
-            ]
-            _prior_strategies = {
-                _index.index_strategy
-                for _index in self.each_existing_index(any_strategy_check=True)
-                if not _index.shtrove_index.is_current
-            }
-            _prior_strategy_statuses = [
-                _strategy.pls_get_strategy_status() for _strategy in _prior_strategies
-            ]
-        else:
-            _subindex_statuses = [
-                _index.pls_get_status() for _index in self.each_existing_index()
-            ]
-        return ShtroveIndexStatus(
-            strategy_name=self.strategy_name,
-            strategy_check=self.strategy_check,
-            is_set_up=self.pls_check_exists(),
-            is_default_for_searching=(self == self.pls_get_default_for_searching()),
-            index_statuses=_subindex_statuses,
-            existing_prior_strategies=_prior_strategy_statuses,
-        )
-
     ###
     # adding/updating/removing metadata
-    def set_item_metadata(self, metadata: ProtoCombinedMetadata) -> None: ...
+    def set_metadatum(self, metadata: _indextypes.ProtoCombinedMetadata) -> None: ...
 
     ###
     # searching
     def handle_recordsearch(
-        self, recordsearch_args: ProtoRecordsearchArgs
-    ) -> ProtoRecordsearchResponse: ...
+        self, recordsearch_args: _indextypes.ProtoRecordsearchArgs
+    ) -> _indextypes.ProtoRecordsearchResponse: ...
 
     def handle_valuesearch(
-        self, valuesearch_args: ProtoValuesearchArgs
-    ) -> ProtoValuesearchResponse: ...
+        self, valuesearch_args: _indextypes.ProtoValuesearchArgs
+    ) -> _indextypes.ProtoValuesearchResponse: ...
 
     @classmethod
     @functools.cache

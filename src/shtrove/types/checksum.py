@@ -1,8 +1,6 @@
 import typing
 
-__all__ = (
-    'ProtoChecksum',
-)
+__all__ = ("ProtoChecksum",)
 
 
 class ProtoChecksum(typing.Protocol):

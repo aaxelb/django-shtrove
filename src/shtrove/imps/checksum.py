@@ -46,9 +46,7 @@ class Checksum:
     hexdigest: str
 
     def as_iri(self) -> str:
-        return (
-            f"urn:checksum:{self.hash_name}:{self.prefix}:{self.hexdigest}"
-        )
+        return f"urn:checksum:{self.hash_name}:{self.prefix}:{self.hexdigest}"
 
     @classmethod
     def digest(

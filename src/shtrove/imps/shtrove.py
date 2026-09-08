@@ -1,15 +1,15 @@
 import collections.abc as _abc
 import functools
 
-import shtrove.types
+import shtrove.types as _types
 from shtrove.util.entry_points import load_each_entry_point
 
 
-class BasicShtrove(shtrove.types.ProtoShtrove):
+class BasicShtrove(_types.ProtoShtrove):
     ###
     # for ProtoShtrove
 
-    def way_to_extract(self, mediatype: str) -> shtrove.types.ProtoExtract:
+    def way_to_extract(self, mediatype: str) -> _types.ProtoExtract:
         # TODO: better handle errors, init args, mediatype collisions
         return next(
             _extract_type()
@@ -17,26 +17,24 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
             if _extract_type.accepts(mediatype)
         )
 
-    def way_to_persist(self) -> shtrove.types.ProtoPersist:
+    def way_to_persist(self) -> _types.ProtoPersist:
         # TODO: basic persist (without database) -- write to files?
         raise NotImplementedError("no basic persist exists")
 
-    def each_way_to_derive(self) -> _abc.Iterator[shtrove.types.ProtoDerive]:
+    def each_way_to_derive(self) -> _abc.Iterator[_types.ProtoDerive]:
         # TODO: handle errors, init args
         for _derive_type in self._each_derive_type():
             yield _derive_type()
 
-    def each_way_to_index(self) -> _abc.Iterator[shtrove.types.ProtoIndex]:
+    def each_way_to_index(self) -> _abc.Iterator[_types.ProtoIndex]:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic index exists")
 
-    def way_to_search(self, name: str = "") -> shtrove.types.ProtoIndex:
+    def way_to_search(self, name: str = "") -> _types.ProtoIndex:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic search index exists")
 
-    def way_to_render(
-        self, accepts: _abc.Sequence[str] = ()
-    ) -> shtrove.types.ProtoRender:
+    def way_to_render(self, accepts: _abc.Sequence[str] = ()) -> _types.ProtoRender:
         # TODO: better handle errors, init args, mediatype params, `Accept` header semantics...
         return next(
             self._render_types_by_mediatype[_mediatype]()
@@ -48,19 +46,25 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
     # loading entrypoints
     # (TODO: should these be cached? is accessing package metadata slow?)
 
-    def _each_extract_type(self) -> _abc.Iterable[type[shtrove.types.ProtoExtract]]:
-        return load_each_entry_point("shtrove.ProtoExtract", shtrove.types.ProtoExtract)
+    def _each_extract_type(self) -> _abc.Iterable[type[_types.ProtoExtract]]:
+        for _cls in load_each_entry_point("shtrove.ProtoExtract"):
+            assert issubclass(_cls, _types.ProtoExtract)
+            yield _cls
 
-    def _each_derive_type(self) -> _abc.Iterable[type[shtrove.types.ProtoDerive]]:
-        return load_each_entry_point("shtrove.ProtoDerive", shtrove.types.ProtoDerive)
+    def _each_derive_type(self) -> _abc.Iterable[type[_types.ProtoDerive]]:
+        for _cls in load_each_entry_point("shtrove.ProtoDerive"):
+            assert issubclass(_cls, _types.ProtoDerive)
+            yield _cls
 
-    def _each_render_type(self) -> _abc.Iterable[type[shtrove.types.ProtoRender]]:
-        return load_each_entry_point("shtrove.ProtoRender", shtrove.types.ProtoRender)
+    def _each_render_type(self) -> _abc.Iterable[type[_types.ProtoRender]]:
+        for _cls in load_each_entry_point("shtrove.ProtoRender"):
+            assert issubclass(_cls, _types.ProtoRender)
+            yield _cls
 
     @functools.cached_property
     def _render_types_by_mediatype(
         self,
-    ) -> _abc.Mapping[str, type[shtrove.types.ProtoRender]]:
+    ) -> _abc.Mapping[str, type[_types.ProtoRender]]:
         _by_mediatype = {}
         for _render_type in self._each_render_type():
             _mediatype = _render_type.mediatype()
@@ -81,7 +85,7 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
         focus_iri: str,
         input_mediatype: str,
         input_document: str,
-        record_identifier: str | None = None,  # default focus_iri
+        record_identifier: str = '',  # default focus_iri
         is_supplementary: bool = False,
         # TODO: expiration_date: datetime.date | None = None,  # default "never"
         restore_deleted: bool = False,
@@ -97,19 +101,25 @@ class BasicShtrove(shtrove.types.ProtoShtrove):
         if is_supplementary:
             _record = self.way_to_persist().store_supplementary_metadatum(
                 _metadatum,
+                supplement_identifier=record_identifier or focus_iri,
             )
-        _record = self.way_to_persist().store_metadatum(
-            _metadatum,
-        )
+        else:
+            _record = self.way_to_persist().store_metadatum(
+                _metadatum,
+                record_identifier=record_identifier or focus_iri,
+                restore_deleted=restore_deleted,
+            )
         # derive
         _combined_metadata = self.way_to_persist().get_combined_metadata(
-            _record.focus_iri
+            *_record.focus_iris
         )
-        for _derive_strat in self.each_way_to_derive():
-            _derived_metadatum = _derive_strat.derive(_combined_metadata)
+        for _derive in self.each_way_to_derive():
+            _derived_metadatum = _derive.derive(_combined_metadata)
             if _derived_metadatum is not None:
-                self.way_to_persist().store_derived_metadatum(_derived_metadatum)
+                self.way_to_persist().store_derived_metadatum(
+                    _derived_metadatum, record=_record
+                )
         # index
-        for _index_strat in self.each_way_to_index():
-            _index_strat.set_item_metadata(_combined_metadata)
+        for _index in self.each_way_to_index():
+            _index.set_metadatum(_combined_metadata)
         return _record

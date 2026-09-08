@@ -42,7 +42,9 @@ class ProtoIndex(typing.Protocol):
     def set_metadatum(self, metadatum: ProtoCombinedMetadata) -> None:
         self.set_each_metadatum([metadatum])
 
-    def set_each_metadatum(self, metadata: _abc.Iterable[ProtoCombinedMetadata]) -> None:
+    def set_each_metadatum(
+        self, metadata: _abc.Iterable[ProtoCombinedMetadata]
+    ) -> None:
         for _metadatum in metadata:
             self.set_metadatum(_metadatum)
 

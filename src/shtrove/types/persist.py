@@ -70,8 +70,8 @@ class ProtoPersist(typing.Protocol):
     ###
     # browse by focus iri
 
-    def get_combined_metadata(self, focus_iri: str) -> ProtoCombinedMetadata: ...
+    def get_combined_metadata(self, *focus_iris: str) -> ProtoCombinedMetadata: ...
 
     def get_each_record_by_focus(
-        self, focus_iri: str
+        self, *focus_iris: str
     ) -> cabc.Iterable[ProtoCatalogRecord]: ...
