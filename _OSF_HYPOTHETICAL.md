@@ -34,54 +34,54 @@ sequenceDiagram
     si ->> se: bulk index
 ```
 
-## hypothetical a: install django-shtrove in osf.io, still with bulk indexer
+## hypotheticals of django-shtrove in osf.io
+if using django-shtrove in osf.io, need to decide whether to keep the bulk indexer daemon from SHARE/trove
+
+benefits of bulk indexing (hypothetical a):
+- less contention with other background tasks over workers/queues
+- faster/cheaper indexing of many records in a row, with fewer database queries
+
+benefits of no bulk indexing (hypothetical b):
+- one less daemon process running in the background
+- somewhat simpler code and diagrams
+
+same either way:
+- how records are saved/persisted in the database
+- how searches are run
+
+### hypothetical a: django-shtrove in osf.io, still with bulk indexer
 
 ```mermaid
 sequenceDiagram
     box OSF
     participant oq as queues (rabbitmq)
-    participant od as db (postgres)
     participant ow as worker (celery)
+    participant od as db (postgres)
     participant si as indexer
     participant se as elasticsearch
     end
     oq -->> ow: receive update task
     od <<-->> ow: gather metadata
-    ow ->> od: save gathered metadata to shtrove record
-    ow ->> od: save derived cards
+    ow ->> od: save metadata to shtrove tables
     ow ->> oq: enqueue indexer message
     oq -->> si: bulk receive messages
     od <<-->> si: bulk load metadata records
-    si ->> se: bulk index
+    si ->> se: bulk update elastic indexes
 ```
-benefits:
-- less contention with other tasks over celery workers/queues
-- faster/cheaper indexing of many records in a row, with fewer database queries
-
-costs:
-- some code complexity
-- additional daemon process always running
 
 
-## hypothetical b: install django-shtrove in osf.io, without bulk indexer
+### hypothetical b: install django-shtrove in osf.io, without bulk indexer
 
 ```mermaid
 sequenceDiagram
     box OSF
     participant oq as queues (rabbitmq)
-    participant od as db (postgres)
     participant ow as worker (celery)
+    participant od as db (postgres)
     participant se as elasticsearch
     end
     oq -->> ow: receive update task
     od <<-->> ow: gather metadata
-    ow ->> od: save gathered metadata to shtrove record
-    ow ->> od: save derived cards
-    ow ->> se: bulk index
+    ow ->> od: save metadata to shtrove tables
+    ow ->> se: update elastic indexes
 ```
-benefits:
-- simpler diagram, less code
-
-costs:
-- more contention with other tasks over celery workers/queues
-- slower/costlier indexing of many records at once
