@@ -5,6 +5,7 @@ from __future__ import annotations
 __all__ = (
     "ProtoCatalogRecord",
     "ProtoCombinedMetadata",
+    "ProtoInfoCard",
 )
 
 import collections.abc as cabc
@@ -14,7 +15,14 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.types.extract import ProtoResourceMetadatum
+
+class ProtoInfoCard(typing.Protocol):
+    card_iri: str
+    focus_iri: str
+    info: rdf.RdfTripleDictionary
+
+    # dcterms:created
+    created: datetime.datetime
 
 
 class ProtoCatalogRecord(typing.Protocol):
@@ -44,8 +52,8 @@ class ProtoCatalogRecord(typing.Protocol):
     modified: datetime.datetime
 
     # shtrove-specific relationships
-    each_current_metadatum: cabc.Iterable[ProtoResourceMetadatum]
-    each_supplementary_metadatum: cabc.Iterable[ProtoResourceMetadatum]
+    each_current_card: cabc.Iterable[ProtoInfoCard]
+    each_supplementary_card: cabc.Iterable[ProtoInfoCard]
 
 
 class ProtoCombinedMetadata(typing.Protocol):

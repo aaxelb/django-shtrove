@@ -7,11 +7,11 @@ import uuid
 
 from primitive_metadata import primitive_rdf as rdf
 
-from shtrove.types.extract import ProtoResourceMetadatum
 from .types import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
     ProtoPersist,
+    ProtoInfoCard,
 )
 
 
@@ -53,8 +53,8 @@ class CatalogRecord(ProtoCatalogRecord):
     modified: datetime.datetime
 
     # shtrove-specific relationships
-    each_current_metadatum: cabc.Iterable[ProtoResourceMetadatum]
-    each_supplementary_metadatum: cabc.Iterable[ProtoResourceMetadatum] = ()
+    each_current_card: cabc.Iterable[ProtoInfoCard]
+    each_supplementary_card: cabc.Iterable[ProtoInfoCard] = ()
 
 
 @dataclasses.dataclass

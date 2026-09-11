@@ -6,7 +6,7 @@ import json
 from typing import Self, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from shtrove.util.json import JsonValue
+    from shtrove.types.json import JsonValue
 
 
 type HexdigestFn = Callable[[str | bytes, str | bytes], str]

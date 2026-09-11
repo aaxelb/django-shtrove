@@ -9,10 +9,10 @@ import typing
 import uuid
 
 from shtrove.types.derive import ProtoDerivedMetadatum
-from shtrove.types.extract import ProtoResourceMetadatum
 from shtrove.types.record import (
     ProtoCatalogRecord,
     ProtoCombinedMetadata,
+    ProtoInfoCard,
 )
 
 
@@ -23,7 +23,7 @@ class ProtoPersist(typing.Protocol):
 
     def store_metadatum(
         self,
-        resource_metadatum: ProtoResourceMetadatum,
+        resource_metadatum: ProtoInfoCard,
         *,
         record_identifier: str = "",
         restore_deleted: bool = False,
@@ -31,7 +31,7 @@ class ProtoPersist(typing.Protocol):
 
     def store_supplementary_metadatum(
         self,
-        resource_metadatum: ProtoResourceMetadatum,
+        resource_metadatum: ProtoInfoCard,
         *,
         supplement_identifier: str,
     ) -> ProtoCatalogRecord: ...
@@ -50,15 +50,15 @@ class ProtoPersist(typing.Protocol):
 
     def get_current_metadatum(
         self, record_uuid: uuid.UUID
-    ) -> ProtoResourceMetadatum: ...
+    ) -> ProtoInfoCard: ...
 
     def get_each_supplementary_metadatum(
         self, record_uuid: uuid.UUID
-    ) -> cabc.Iterable[ProtoResourceMetadatum]: ...
+    ) -> cabc.Iterable[ProtoInfoCard]: ...
 
     def get_each_archived_metadatum(
         self, record_uuid: uuid.UUID
-    ) -> cabc.Iterable[ProtoResourceMetadatum]: ...
+    ) -> cabc.Iterable[ProtoInfoCard]: ...
 
     def get_derived_metadatum(
         self, record_uuid: uuid.UUID, derived_datatype_iri: str

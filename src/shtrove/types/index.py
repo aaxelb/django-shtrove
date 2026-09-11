@@ -9,7 +9,7 @@ import uuid
 from primitive_metadata import primitive_rdf as rdf
 
 from shtrove.types.checksum import ProtoChecksum
-from shtrove.types.record import ProtoCombinedMetadata
+from shtrove.types.record import ProtoCatalogRecord
 from shtrove.types.response import (
     ProtoPagedResponse,
     ProtoPageCursor,
@@ -31,31 +31,33 @@ class ProtoIndex(typing.Protocol):
     ###
     # index lifecycle
 
-    def do_initial_setup(self) -> None: ...
-    def do_update_setup(self) -> None: ...
-    def do_teardown(self, *, really_really: bool) -> None: ...
-    def get_index_status(self) -> ProtoIndexStatus: ...
+    def do_shtrove_index_setup(self) -> None: ...
+    def do_shtrove_index_teardown(self, *, really_really: bool) -> None: ...
+    def get_shtrove_index_status(self) -> ProtoIndexStatus: ...
 
     ###
     # adding/updating/removing metadata
 
-    def set_metadatum(self, metadatum: ProtoCombinedMetadata) -> None:
-        self.set_each_metadatum([metadatum])
+    def update_shtrove_record(self, shtrove_record: ProtoCatalogRecord) -> None:
+        self.update_each_shtrove_record([shtrove_record])
 
-    def set_each_metadatum(
-        self, metadata: _abc.Iterable[ProtoCombinedMetadata]
+    def update_each_shtrove_record(
+        self, each_shtrove_record: _abc.Iterable[ProtoCatalogRecord]
     ) -> None:
-        for _metadatum in metadata:
-            self.set_metadatum(_metadatum)
+        for _record in each_shtrove_record:
+            self.update_shtrove_record(_record)
+
+    def remove_shtrove_focus(self, focus_iri: str) -> None:
+        raise NotImplementedError
 
     ###
     # searching
 
-    def handle_recordsearch(
+    def handle_shtrove_recordsearch(
         self, recordsearch_args: ProtoRecordsearchArgs
     ) -> ProtoRecordsearchResponse: ...
 
-    def handle_valuesearch(
+    def handle_shtrove_valuesearch(
         self, valuesearch_args: ProtoValuesearchArgs
     ) -> ProtoValuesearchResponse: ...
 
@@ -66,13 +68,13 @@ class ProtoIndex(typing.Protocol):
 
 class ProtoIndexStatus(typing.Protocol):
     @property
-    def local_name(self) -> str: ...
+    def imp_name(self) -> str: ...
     @property
     def config_checksum(self) -> ProtoChecksum: ...
     @property
     def is_set_up(self) -> bool: ...
     @property
-    def each_subindex_status(self) -> _abc.Iterable[ProtoSubindexStatus]: ...
+    def each_partindex_status(self) -> _abc.Iterable[ProtoSubindexStatus]: ...
     @property
     def each_existing_prior_index(self) -> _abc.Iterable[ProtoIndexStatus]: ...
 

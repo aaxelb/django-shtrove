@@ -6,7 +6,7 @@ see docstrings in `src/*/**.py` for more plans/details
 - refine local dev setup (all Makefile commands working)
 - django_shtrove migrations
 - django_shtrove `ProtoPersist` imp (using models)
-- index strategies from SHARE (`TrovesearchDenormIndexStrategy` to `ShtrovesearchIndexES8(ProtoIndex)`)
+- index strategies from SHARE (`TrovesearchDenormIndexStrategy` to `ShtrovesearchES8IndexImp(ProtoIndex)`)
 - management commands from SHARE (`shtrove_index_setup`, `shtrove_index_teardown`)
 - admin interface from SHARE/trove (shtrove models, index status/lifecycle)
 - base views/responders from SHARE/trove

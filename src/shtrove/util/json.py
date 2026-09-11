@@ -16,6 +16,7 @@ JSONLD_VALUE_KEYS = ("@value", "@id")
 
 type JsonPath = _abc.Sequence[str]  # path of json keys
 
+
 def json_vals(json_obj: JsonObject, path: JsonPath) -> _abc.Iterator[JsonValue]:
     assert path
     _step, *_rest = path
@@ -67,7 +68,7 @@ def json_prims(
 def json_strs(
     json_val: JsonValue,
     path: JsonPath,
-    value_key_options: Iterable[str] = JSONLD_VALUE_KEYS,
+    value_key_options: _abc.Iterable[str] = JSONLD_VALUE_KEYS,
     coerce_str: bool = False,
 ) -> _abc.Iterator[str]:
     for _prim in json_prims(json_val, path, value_key_options):

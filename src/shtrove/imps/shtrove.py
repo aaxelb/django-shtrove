@@ -9,7 +9,7 @@ class BasicShtrove(_types.ProtoShtrove):
     ###
     # for ProtoShtrove
 
-    def way_to_extract(self, mediatype: str) -> _types.ProtoExtract:
+    def get_shtrove_extract_imp(self, mediatype: str) -> _types.ProtoExtract:
         # TODO: better handle errors, init args, mediatype collisions
         return next(
             _extract_type()
@@ -17,20 +17,20 @@ class BasicShtrove(_types.ProtoShtrove):
             if _extract_type.accepts(mediatype)
         )
 
-    def way_to_persist(self) -> _types.ProtoPersist:
+    def get_shtrove_persist_imp(self) -> _types.ProtoPersist:
         # TODO: basic persist (without database) -- write to files?
         raise NotImplementedError("no basic persist exists")
 
-    def each_way_to_derive(self) -> _abc.Iterator[_types.ProtoDerive]:
+    def each_shtrove_derive_imp(self) -> _abc.Iterator[_types.ProtoDerive]:
         # TODO: handle errors, init args
         for _derive_type in self._each_derive_type():
             yield _derive_type()
 
-    def each_way_to_index(self) -> _abc.Iterator[_types.ProtoIndex]:
+    def each_index_imp(self) -> _abc.Iterator[_types.ProtoIndex]:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic index exists")
 
-    def way_to_search(self, name: str = "") -> _types.ProtoIndex:
+    def get_shtrove_search_imp(self, name: str = "") -> _types.ProtoIndex:
         # TODO: basic index (without elasticsearch)?
         raise NotImplementedError("no basic search index exists")
 
@@ -93,33 +93,33 @@ class BasicShtrove(_types.ProtoShtrove):
     ) -> _types.ProtoCatalogRecord:
         """ingest: extract + derive + persist + index"""
         # extract
-        _metadatum = self.way_to_extract(input_mediatype).extract(
+        _metadatum = self.get_shtrove_extract_imp(input_mediatype).extract(
             input_document,
             focus_iri=focus_iri,
         )
         # persist
         if is_supplementary:
-            _record = self.way_to_persist().store_supplementary_metadatum(
+            _record = self.get_shtrove_persist_imp().store_supplementary_metadatum(
                 _metadatum,
                 supplement_identifier=record_identifier or focus_iri,
             )
         else:
-            _record = self.way_to_persist().store_metadatum(
+            _record = self.get_shtrove_persist_imp().store_metadatum(
                 _metadatum,
                 record_identifier=record_identifier or focus_iri,
                 restore_deleted=restore_deleted,
             )
         # derive
-        _combined_metadata = self.way_to_persist().get_combined_metadata(
+        _combined_metadata = self.get_shtrove_persist_imp().get_combined_metadata(
             *_record.focus_iris
         )
-        for _derive in self.each_way_to_derive():
+        for _derive in self.each_shtrove_derive_imp():
             _derived_metadatum = _derive.derive(_combined_metadata)
             if _derived_metadatum is not None:
-                self.way_to_persist().store_derived_metadatum(
+                self.get_shtrove_persist_imp().store_derived_metadatum(
                     _derived_metadatum, record=_record
                 )
         # index
-        for _index in self.each_way_to_index():
+        for _index in self.each_index_imp():
             _index.set_metadatum(_combined_metadata)
         return _record

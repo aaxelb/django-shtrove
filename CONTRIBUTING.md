@@ -38,6 +38,9 @@ if you have a compose tool named `pc`, for example:
           yield Thing(1)
           yield Thing(2)
       ```
+    - `Proto` (as a prefix) indicates a [typing.Protocol](https://typing.python.org/en/latest/spec/protocol.html),
+      a duck-type interface that could be implemented various ways
+    - "imp" is short for "implementation" -- like a class or instance that implements a Protocol
 - use accurate type annotations everywhere reasonably feasible
     - especially for public interface (and then try to avoid breaking type changes)
     - `make lint` defaults to strict type-linting (using `mypy`), but you may loosen constraints
